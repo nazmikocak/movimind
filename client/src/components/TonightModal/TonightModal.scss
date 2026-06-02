@@ -1,0 +1,131 @@
+@use '../../styles/variables' as *;
+
+.tonight {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+  animation: tonight-fade 200ms ease;
+
+  &__panel {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    background: $grad-hero;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: $radius-2xl;
+    padding: 40px 36px 28px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    animation: tonight-pop 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  &__close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: $radius-pill;
+    background: rgba(255, 255, 255, 0.1);
+    color: $text-primary;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background $transition-fast;
+    &:hover { background: $accent-red; }
+  }
+
+  &__eyebrow {
+    font-family: $font-display;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    font-size: $text-xs;
+    color: $accent-red-light;
+  }
+
+  &__title {
+    font-family: $font-display;
+    font-weight: 800;
+    font-size: 30px;
+    margin: 8px 0 6px;
+    color: #fff;
+  }
+
+  &__sub {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: $text-base;
+    margin-bottom: 26px;
+    max-width: 480px;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+
+    @media (max-width: $bp-tablet) { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: $bp-mobile) { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: $radius-lg;
+    background: rgba(0, 0, 0, 0.28);
+    color: #fff;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      transform: translateY(-3px);
+      border-color: $accent-red;
+      background: rgba(229, 9, 20, 0.18);
+    }
+
+    &-icon {
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      color: $accent-red-light;
+    }
+    &:hover &-icon { color: #fff; }
+
+    &-label {
+      font-size: $text-sm;
+      font-weight: 600;
+    }
+  }
+
+  &__skip {
+    display: block;
+    margin: 24px auto 0;
+    padding: 8px 18px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: $text-sm;
+    cursor: pointer;
+    transition: color $transition-fast;
+    &:hover { color: #fff; }
+  }
+}
+
+@keyframes tonight-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes tonight-pop {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

@@ -1,0 +1,28 @@
+@use './variables' as *;
+@use './reset';
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap');
+
+body {
+  font-family: $font-sans;
+  background: $bg-page;
+  color: $text-primary;
+}
+
+// Tüm sayfalarda tutarlı yatay boşluk + maksimum genişlik (madde 14)
+.page-container {
+  width: 100%;
+  max-width: $page-max;
+  margin: 0 auto;
+  padding-left: $page-pad-x;
+  padding-right: $page-pad-x;
+
+  @media (max-width: $bp-desktop) {
+    padding-left: $page-pad-x-tablet;
+    padding-right: $page-pad-x-tablet;
+  }
+  @media (max-width: $bp-mobile) {
+    padding-left: $page-pad-x-mobile;
+    padding-right: $page-pad-x-mobile;
+  }
+}

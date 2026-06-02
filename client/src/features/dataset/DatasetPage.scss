@@ -1,0 +1,371 @@
+@use '../../styles/variables' as *;
+
+// DatasetPage artık .page-container üzerinde — max-width ve pad oradan gelir.
+.dataset {
+  padding-top: $space-8;
+  padding-bottom: $space-10;
+
+  &__header { margin-bottom: $space-8; }
+  &__page-title { font-size: $text-2xl; font-weight: 800; font-family: $font-display; color: $text-primary; letter-spacing: -0.02em; }
+  &__page-sub { font-size: $text-base; color: $text-muted; margin-top: $space-2; }
+
+  // ── Stat kartları ──────────────────────────────────────────────────────────────
+  &__stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $space-5;
+    margin-bottom: $space-8;
+
+    @media (max-width: $bp-tablet) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: $bp-mobile) { grid-template-columns: 1fr 1fr; }
+  }
+
+  &__stat-card {
+    background: $bg-card;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-xl;
+    padding: $space-6 $space-5;
+    text-align: center;
+    transition: border-color $transition-fast;
+    &:hover { border-color: $accent-red-dark; }
+
+    &-icon {
+      font-size: 26px;
+      color: $accent-red;
+      margin-bottom: $space-3;
+      display: flex; justify-content: center;
+    }
+    &-value {
+      font-family: $font-display;
+      font-size: $text-2xl;
+      font-weight: 800;
+      color: $text-primary;
+      line-height: 1;
+    }
+    &-label {
+      font-size: $text-xs;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: $text-muted;
+      text-transform: uppercase;
+      margin-top: $space-2;
+    }
+  }
+
+  // ── Grafikler ──────────────────────────────────────────────────────────────────
+  &__charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-6;
+    margin-bottom: $space-8;
+
+    @media (max-width: $bp-desktop) { grid-template-columns: 1fr; }
+  }
+
+  &__chart-card {
+    background: $bg-card;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-xl;
+    padding: $space-6 $space-5 $space-4;
+  }
+
+  &__chart-head {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-5;
+  }
+
+  &__chart-icon {
+    font-size: 18px;
+    color: $accent-red;
+    display: grid; place-items: center;
+  }
+
+  &__chart-title {
+    font-size: $text-md;
+    font-weight: 700;
+    color: $text-secondary;
+  }
+
+  &__chart-body { width: 100%; }
+
+  // ── Betimsel istatistikler ─────────────────────────────────────────────────────
+  &__desc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $space-4;
+
+    @media (max-width: $bp-tablet) { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  &__desc-cell {
+    background: $bg-elevated;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-lg;
+    padding: $space-4 $space-3;
+    text-align: center;
+  }
+
+  &__desc-val {
+    font-family: $font-display;
+    font-size: $text-lg;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  &__desc-label {
+    font-size: $text-xs;
+    color: $text-muted;
+    margin-top: $space-1;
+  }
+
+  // ── Model performansı ──────────────────────────────────────────────────────────
+  &__model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $space-4;
+
+    @media (max-width: $bp-tablet) { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  &__model-card {
+    background: $bg-elevated;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-lg;
+    padding: $space-5 $space-4;
+    text-align: center;
+
+    &--hl {
+      border-color: $accent-red-dark;
+      background: rgba(229, 9, 20, 0.08);
+    }
+  }
+
+  &__model-ic {
+    font-size: 22px;
+    color: $accent-red;
+    display: flex; justify-content: center;
+    margin-bottom: $space-2;
+  }
+
+  &__model-val {
+    font-family: $font-display;
+    font-size: $text-xl;
+    font-weight: 800;
+    color: $text-primary;
+    line-height: 1.1;
+  }
+
+  &__model-label {
+    font-size: $text-xs;
+    color: $text-muted;
+    margin-top: $space-1;
+  }
+
+  // ── Bölüm ortak ───────────────────────────────────────────────────────────────
+  &__section {
+    margin-bottom: $space-10;
+    margin-top: $space-10;
+
+    &:first-of-type { margin-top: 0; }
+  }
+
+  &__section-head {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    margin-bottom: $space-5;
+    padding-bottom: $space-3;
+    border-bottom: 1px solid $border-subtle;
+  }
+
+  &__section-icon {
+    font-size: 18px;
+    color: $accent-red;
+    display: grid; place-items: center;
+    flex: none;
+  }
+
+  &__section-title {
+    font-size: $text-md;
+    font-weight: 700;
+    color: $text-secondary;
+    flex: 1;
+  }
+
+  &__section-badge {
+    font-size: $text-xs;
+    font-weight: 600;
+    color: $accent-red-light;
+    background: rgba(229, 9, 20, 0.12);
+    border: 1px solid rgba(229, 9, 20, 0.3);
+    border-radius: $radius-pill;
+    padding: 3px 10px;
+  }
+
+  // ── Tablolar ──────────────────────────────────────────────────────────────────
+  &__table-wrap {
+    overflow-x: auto;
+    border-radius: $radius-lg;
+    border: 1px solid $border-subtle;
+  }
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $text-sm;
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: $text-xs;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: $text-muted;
+      background: $bg-elevated;
+      border-bottom: 1px solid $border-default;
+    }
+
+    td {
+      padding: 10px 14px;
+      color: $text-secondary;
+      border-bottom: 1px solid $border-subtle;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .rank { color: $text-disabled; font-weight: 700; width: 36px; text-align: center; }
+    .rating { color: $warning; display: flex; align-items: center; gap: 4px; white-space: nowrap; font-weight: 600; }
+    .count { color: $text-muted; white-space: nowrap; }
+  }
+
+  // ── Öncesi/sonrası ────────────────────────────────────────────────────────────
+  &__cleaning {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $space-5;
+
+    @media (max-width: $bp-mobile) { grid-template-columns: 1fr; }
+
+    &-col {
+      border-radius: $radius-lg;
+      padding: $space-5;
+
+      &--before { background: rgba(180, 50, 50, 0.08); border: 1px solid rgba(229,9,20,0.25); }
+      &--after  { background: rgba(70, 211, 105, 0.06); border: 1px solid rgba(70,211,105,0.25); }
+    }
+
+    &-col-title {
+      font-size: $text-xs;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: $text-muted;
+      margin-bottom: $space-4;
+    }
+
+    &-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: $space-2 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      &:last-child { border-bottom: none; }
+
+      &-label { font-size: $text-sm; color: $text-muted; }
+      &-value { font-size: $text-sm; font-weight: 700; color: $text-primary; }
+    }
+  }
+
+  // ── Örneklem yüzde barı ───────────────────────────────────────────────────────
+  &__sample-bars {
+    display: flex;
+    flex-direction: column;
+    gap: $space-5;
+    margin-bottom: $space-5;
+  }
+
+  &__pbar {
+    &-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    &-label { font-size: $text-sm; font-weight: 600; color: $text-secondary; }
+    &-pct   { font-size: $text-sm; font-weight: 800; color: $accent-red-light; }
+    &-track {
+      height: 10px;
+      background: rgba(255,255,255,0.07);
+      border-radius: $radius-pill;
+      overflow: hidden;
+    }
+    &-fill {
+      height: 100%;
+      background: $grad-red;
+      border-radius: $radius-pill;
+      transition: width 0.8s ease;
+    }
+    &-sub { font-size: $text-xs; color: $text-disabled; margin-top: 4px; }
+  }
+
+  &__sample-note {
+    font-size: $text-sm;
+    color: $text-muted;
+    line-height: 1.6;
+    border-left: 3px solid $accent-red-dark;
+    padding-left: $space-4;
+    margin-top: $space-3;
+  }
+
+  // ── Veri seti atfı ──────────────────────────────────────────────────────────
+  &__cite {
+    background: $bg-card;
+    border: 1px solid $border-subtle;
+    border-radius: $radius-lg;
+    padding: $space-5 $space-6;
+
+    &-text {
+      font-size: $text-sm;
+      color: $text-secondary;
+      line-height: 1.7;
+
+      strong { color: $text-primary; font-weight: 700; }
+    }
+
+    &-ref {
+      font-size: $text-sm;
+      color: $text-muted;
+      line-height: 1.6;
+      font-style: italic;
+      border-left: 3px solid $accent-red-dark;
+      padding-left: $space-4;
+      margin-top: $space-4;
+    }
+
+    &-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: $space-4;
+      margin-top: $space-4;
+    }
+
+    &-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: $text-sm;
+      font-weight: 600;
+      color: $accent-red-light;
+      text-decoration: none;
+      transition: color $transition-fast;
+
+      svg { font-size: 15px; }
+
+      &:hover { color: $text-primary; }
+    }
+  }
+}

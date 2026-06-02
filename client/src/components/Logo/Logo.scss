@@ -1,0 +1,24 @@
+@use '../../styles/variables' as *;
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+
+  &__text {
+    font-family: $font-display;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: $text-primary;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  &__text-accent {
+    color: $accent-red;
+  }
+
+  &--sm { font-size: 18px; }
+  &--md { font-size: 26px; }
+  &--lg { font-size: 40px; }
+}

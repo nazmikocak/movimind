@@ -1,0 +1,48 @@
+# ── Ders/rapor belgeleri (yalnızca yerelde kalır) ───────────
+docs/
+
+# ── Veri seti (büyük dosyalar GitHub'a gitmez) ──────────────
+server/data/raw/
+server/data/processed/
+server/artifacts/
+*.pkl
+
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+venv/
+.venv/
+env/
+**/venv/
+*.log
+server/bootstrap.log
+
+# ── Node / Vite (client) ────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+.vite/
+coverage/
+*.local
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ── Ortam değişkenleri (anahtarlar) ─────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ── Editör / OS ─────────────────────────────────────────────
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# ── Claude Code yerel ayarları (proje .claude izlenir, local izlenmez) ──
+.claude/settings.local.json
