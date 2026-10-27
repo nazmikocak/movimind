@@ -10,6 +10,7 @@ import YearPicksSection from "../../components/YearPicksSection/YearPicksSection
 import GenreGrid from "../../components/GenreGrid/GenreGrid";
 import TonightModal from "../../components/TonightModal/TonightModal";
 import FaqSection from "../../components/FaqSection/FaqSection";
+import { localExtensions } from "../../extensions";
 import "./HomePage.scss";
 
 // Backend tür anahtarı → TR etiket (Bu Gece İçin başlığı için)
@@ -129,6 +130,7 @@ export default function HomePage() {
       </div>
 
       <div className="home__rows">
+        {localExtensions.map(({ HomeRows }, i) => (HomeRows ? <HomeRows key={i} /> : null))}
         <MovieRow title="En Yüksek Puanlı" movies={topRated} onMovieClick={goToMovie} />
         <MovieRow title="En Popüler" movies={mostRated} onMovieClick={goToMovie} />
         <YearPicksSection movies={yearPicks} />

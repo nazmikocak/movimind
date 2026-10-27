@@ -34,6 +34,7 @@ server yapar; client yalnızca kendi server'ımıza bağlanır.**
 | `client/src/components/` | Paylaşılan parçalar (Navbar, MovieRow, TonightModal…) |
 | `client/src/services/api.ts` | Server'a giden TEK köprü |
 | `client/src/styles/_variables.scss` | Tema token'ları (renk/font/spacing) |
+| `client/src/extensions/` | Yerel eklenti noktaları; `local/` ve `server/app/api/local/` gitignored, depoya/canlıya gitmez |
 
 ## Çalıştırma
 

@@ -8,6 +8,7 @@ import type { Movie, MovieDetails, CastMember } from "../../types/movie";
 import { API } from "../../services/api";
 import { usePoster } from "../../hooks/usePoster";
 import MovieCard from "../../components/MovieCard/MovieCard";
+import { localExtensions } from "../../extensions";
 import "./MovieDetailPage.scss";
 
 function Stars({ rating }: { rating: number }) {
@@ -209,6 +210,8 @@ export default function MovieDetailPage() {
 
           {/* Butonlar */}
           <div className="mp__actions">
+            {localExtensions.map(({ MovieActions }, i) =>
+              MovieActions ? <MovieActions key={i} movie={movie} /> : null)}
             {ext?.trailer_key && (
               <button className="mp__btn mp__btn--trailer" onClick={() => setShowTrailer(true)}>
                 <LuPlay /> Fragman

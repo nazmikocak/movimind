@@ -10,7 +10,7 @@ import type {
 // Yalnızca kendi server'ımız — başka hiçbir dış kaynak (madde 6)
 const BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
-async function get<T>(path: string): Promise<T> {
+export async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();

@@ -1,3 +1,7 @@
+# ── Yalnızca yerel eklentiler (depoya ve canlıya gitmez) ────
+client/src/extensions/local/
+server/app/api/local/
+
 # ── Ders/rapor belgeleri (yalnızca yerelde kalır) ───────────
 docs/
 
