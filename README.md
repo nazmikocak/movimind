@@ -10,7 +10,7 @@
 
 ## Özet
 
-MOVIMIND, geniş çaplı **MovieLens ml-32m** veri seti üzerinden kullanıcı zevklerine en uygun filmleri önermeyi amaçlayan bir web sistemidir. Proje makine öğrenmesi süreçlerini ve modern web teknolojilerini bir araya getirerek, kullanıcılara profesyonel bir VoD (Video on Demand) sistemi deneyimi sunar.
+MOVIMIND, geniş çaplı **MovieLens ml-32m** veri seti üzerinden kullanıcı zevklerine en uygun filmleri önermeyi amaçlayan bir web sistemidir. Proje makine öğrenmesi süreçlerini ve modern web teknolojilerini bir araya getirerek, kullanıcılara modern bir film keşif deneyimi sunar. MOVIMIND film yayını yapmaz; yalnızca öneri, film bilgisi ve resmi fragman sunar.
 
 ## Öne Çıkan Özellikler
 
@@ -46,7 +46,7 @@ movimind/
 │   ├── app/model/        # Öneri algoritması, modelleme, eğitim mantığı
 │   ├── data/raw/         # MovieLens (ml-32m) ham CSV verileri
 │   └── artifacts/        # Üretilen Pickle (KNN) modeli, cache dosyaları ve metrikler
-└── docs/                 # Proje raporları ve dokümantasyonu
+└── CITATION.cff          # Proje ve veri seti atıf bilgisi
 ```
 
 ## Kurulum ve Çalıştırma
@@ -54,14 +54,15 @@ movimind/
 Projeyi yerel ortamınızda ayağa kaldırmak için aşağıdaki adımları sırasıyla izleyin. 
 
 ### 1. Ortam Değişkenleri (.env)
-`server/` dizininde bir `.env` dosyası oluşturun ve dış servis entegrasyonları için gerekli API anahtarlarını ekleyin:
+Örnek dosyaları kopyalayıp kendi değerlerinizi girin. Gerçek `.env` dosyaları `.gitignore` ile dışlanır; depoda yalnızca `.env.example` bulunur.
 
-```env
-RETRAIN_ON_START=false      # Başlangıçta veri setini ve modeli zorla yeniden işlemek için 'true' yapın
-USER_SAMPLE=5000            # KNN modeli için belleği optimize etmek amacıyla alınacak rastgele kullanıcı sayısı
-TMDB_API_KEY=your_tmdb_key  # Zengin film afişleri ve detayları için TMDb anahtarı
-OMDB_API_KEY=your_omdb_key  # Alternatif film metadataları için OMDb anahtarı
+```bash
+cp server/.env.example server/.env   # TMDB_API_KEY, OMDB_API_KEY, CORS_ORIGINS ...
+cp client/.env.example client/.env   # VITE_API_BASE
 ```
+
+### Veri Seti
+[MovieLens ml-32m](https://grouplens.org/datasets/movielens/32m/) arşivini indirip içeriğini `server/data/raw/ml-32m/` dizinine çıkarın. Ham veri lisans gereği ve boyutu nedeniyle depoya dahil edilmez.
 
 ### 2. Backend Geliştirme Sunucusu
 Python ortamınızda, `server` dizini içerisindeki gereksinimleri yükleyin ve ana dosya olan `main.py` dosyasını çalıştırın:
@@ -84,3 +85,31 @@ npm run dev
 
 İstemci başlatıldıktan sonra modern VOD arayüzüne [http://localhost:5173](http://localhost:5173) adresinden ulaşabilirsiniz.
 
+## Veri Seti ve Atıf
+
+Bu projede GroupLens Research (University of Minnesota) tarafından yayımlanan **MovieLens 32M** veri seti kullanılmıştır. Veri seti 200.948 kullanıcının 87.585 filme 9 Ocak 1995 – 12 Ekim 2023 arasında verdiği 32.000.204 puan ile 2.000.072 etiketi içerir.
+
+GroupLens'in talep ettiği atıf:
+
+> F. Maxwell Harper and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM Transactions on Interactive Intelligent Systems (TiiS) 5, 4: 19:1–19:19. <https://doi.org/10.1145/2827872>
+
+```bibtex
+@article{harper2015movielens,
+  author    = {Harper, F. Maxwell and Konstan, Joseph A.},
+  title     = {The MovieLens Datasets: History and Context},
+  journal   = {ACM Transactions on Interactive Intelligent Systems},
+  volume    = {5},
+  number    = {4},
+  pages     = {19:1--19:19},
+  year      = {2015},
+  publisher = {ACM},
+  doi       = {10.1145/2827872}
+}
+```
+
+**Kullanım koşulları:** Veri seti yalnızca araştırma/eğitim amaçlı, ticari olmayan biçimde kullanılmaktadır. MOVIMIND, University of Minnesota veya GroupLens Research tarafından onaylanmış ya da desteklenmiş değildir. Ayrıntılar için veri setiyle gelen `README.txt` dosyasındaki *Usage License* bölümüne bakın.
+
+## Üçüncü Taraf Veri Kaynakları
+
+- Film detayları, posterler ve fragman bağlantıları [TMDB](https://www.themoviedb.org/) API'si üzerinden alınır. *This product uses the TMDB API but is not endorsed or certified by TMDB.*
+- IMDb puanı, ödüller ve ek meta veriler [OMDb API](https://www.omdbapi.com/) üzerinden alınır.

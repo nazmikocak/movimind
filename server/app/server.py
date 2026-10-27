@@ -4,6 +4,8 @@ import uuid
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import config
+
 BOOT_ID = str(uuid.uuid4())
 
 from app.api import (
@@ -20,7 +22,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=config.CORS_ORIGINS,
         allow_methods=["GET"],
         allow_headers=["*"],
     )

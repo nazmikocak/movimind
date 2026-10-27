@@ -57,6 +57,11 @@ class Config:
     # ── Server ───────────────────────────────────────────────
     HOST = os.getenv("HOST", "127.0.0.1")
     PORT = _int("PORT", 8000)
+    # Virgülle ayrılmış izinli origin listesi (canlıda frontend domain'i)
+    CORS_ORIGINS = [
+        o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+        if o.strip()
+    ]
 
     # ── Ham veri seti referans sayıları (örneklem oranı için) ─
     ORIGINAL_RATINGS = 32_000_204

@@ -1,11 +1,11 @@
 // Posterler server proxy'sinden gelir — client hiçbir dış servise bağlanmaz (madde 6).
 // /api/poster/{imdbId} metahub/TMDb posterini server üzerinden döndürür.
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+import { API } from "./api";
 
 export function getPosterUrl(imdbId: string): string | null {
   if (!imdbId || imdbId === "tt0000000") return null;
-  return `${API_BASE}/api/poster/${imdbId}`;
+  return `${API.base}/api/poster/${imdbId}`;
 }
 
 // Tür bazlı gradient — poster yüklenemezse gösterilir (kırmızı/siyah/bordo paleti)

@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "Bu yazılımı kullanırsanız lütfen aşağıdaki şekilde atıf yapın."
+title: "MOVIMIND: MovieLens ml-32m üzerinde KNN (Öklid) tabanlı film öneri sistemi"
+type: software
+authors:
+  - family-names: "Koçak"
+    given-names: "Nazmi"
+repository-code: "https://github.com/nazmikocak/movimind"
+keywords:
+  - recommender-system
+  - knn
+  - movielens
+  - collaborative-filtering
+references:
+  - type: article
+    title: "The MovieLens Datasets: History and Context"
+    authors:
+      - family-names: "Harper"
+        given-names: "F. Maxwell"
+      - family-names: "Konstan"
+        given-names: "Joseph A."
+    journal: "ACM Transactions on Interactive Intelligent Systems"
+    volume: 5
+    issue: 4
+    start: 1
+    end: 19
+    year: 2015
+    doi: "10.1145/2827872"
