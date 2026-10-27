@@ -78,6 +78,7 @@
   }
 
   &__dataset {
+    display: block;
     font-size: $text-xs;
     color: $text-muted;
     line-height: 1.5;
@@ -93,6 +94,8 @@
       transition: color $transition-fast;
       &:hover { color: $accent-red-light; }
     }
+
+    & + & { margin-top: $space-2; }
   }
 
   // ── Ayraç ──────────────────────────────────────────────────────────────────

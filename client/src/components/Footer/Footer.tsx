@@ -51,6 +51,31 @@ export default function Footer() {
               </a>{" "}
               veri seti kullanılmıştır.
             </span>
+            <span className="footer__dataset">
+              Film bilgileri ve görseller{" "}
+              <a
+                className="footer__dataset-link"
+                href="https://www.themoviedb.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                TMDB
+              </a>
+              , IMDb puanları{" "}
+              <a
+                className="footer__dataset-link"
+                href="https://www.omdbapi.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                OMDb API
+              </a>{" "}
+              kaynaklıdır.
+            </span>
+            <span className="footer__dataset">
+              Bu ürün TMDB API'sini kullanır ancak TMDB tarafından onaylanmış veya
+              sertifikalandırılmış değildir.
+            </span>
           </div>
         </div>
 
