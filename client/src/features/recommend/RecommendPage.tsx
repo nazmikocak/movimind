@@ -7,6 +7,7 @@ import { API } from "../../services/api";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import searchAnimation from "../../assets/animation/SearchLottie.json";
 import "./RecommendPage.scss";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 const STORAGE_KEY = "movimind:recommend:state";
 
@@ -53,7 +54,6 @@ const GENRE_TR: Record<string, string> = {
   "Sci-Fi": "Bilim Kurgu", Thriller: "Gerilim", War: "Savaş",
 };
 
-// Sonuç sıralama seçenekleri
 const SORTS: { key: string; label: string }[] = [
   { key: "rating", label: "Puana Göre" },
   { key: "popularity", label: "İzlenmeye Göre" },
@@ -62,6 +62,7 @@ const SORTS: { key: string; label: string }[] = [
 ];
 
 export default function RecommendPage() {
+  useDocumentTitle("Film Önerileri");
   const navigate = useNavigate();
 
   const saved = loadState();
@@ -77,7 +78,6 @@ export default function RecommendPage() {
   const [movieQuery, setMovieQuery] = useState(saved?.movieQuery ?? "");
   const [movieId, setMovieId] = useState<number | null>(saved?.movieId ?? null);
 
-  const [allMovies, setAllMovies] = useState<Movie[]>([]);
   const [suggestions, setSuggestions] = useState<Movie[]>([]);
   const [showSuggest, setShowSuggest] = useState(false);
   const suggestRef = useRef<HTMLDivElement>(null);
@@ -86,16 +86,20 @@ export default function RecommendPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(saved?.searched ?? false);
   const lottieRef = useRef<LottieRefCurrentProps>(null);
+  const resultsRef = useRef<HTMLElement>(null);
 
+  // Tüm katalogda arar; yazma bitene kadar istek atılmaz
   useEffect(() => {
-    API.mostRated(200).then(setAllMovies).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (!movieQuery.trim()) { setSuggestions([]); return; }
-    const q = movieQuery.toLowerCase();
-    setSuggestions(allMovies.filter((m) => m.title.toLowerCase().includes(q)).slice(0, 8));
-  }, [movieQuery, allMovies]);
+    const q = movieQuery.trim();
+    if (!q) { setSuggestions([]); return; }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      API.search(q, 8)
+        .then((list) => { if (!cancelled) setSuggestions(list); })
+        .catch(() => { if (!cancelled) setSuggestions([]); });
+    }, 250);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [movieQuery]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -112,7 +116,7 @@ export default function RecommendPage() {
     );
   };
 
-  // State değiştiğinde sessionStorage'a kaydet (geri gelince geri yüklenir)
+  // Filtreler sessionStorage'da tutulur; sayfaya geri dönünce korunur
   useEffect(() => {
     saveState({
       selectedGenres, minRating, maxRating, yearMin, yearMax,
@@ -144,9 +148,13 @@ export default function RecommendPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     runSearch(sort);
+    // Mobilde sonuçlar filtrelerin altında kalır; görünür alana kaydır
+    if (window.matchMedia("(max-width: 768px)").matches) {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
-  // Sonuçlar gösterilirken sıralama değişirse yeniden hesapla
+  // Sonuçlar açıkken sıralama değişirse liste yeniden istenir
   const handleSortChange = (key: string) => {
     setSort(key);
     if (searched) runSearch(key);
@@ -186,13 +194,11 @@ export default function RecommendPage() {
       </div>
 
       <div className="recommend">
-      {/* ── Filter panel ── */}
       <aside className="rec-filter">
         <div className="rec-filter__title">Kriterler</div>
 
         <form onSubmit={handleSubmit}>
 
-          {/* Tür */}
           <div className="rec-filter__field">
             <label className="rec-filter__label">
               Film Türü
@@ -214,7 +220,6 @@ export default function RecommendPage() {
             </div>
           </div>
 
-          {/* Minimum puan */}
           <div className="rec-filter__field">
             <label className="rec-filter__label">
               Minimum Puan
@@ -231,7 +236,6 @@ export default function RecommendPage() {
             />
           </div>
 
-          {/* Maksimum puan */}
           <div className="rec-filter__field">
             <label className="rec-filter__label">
               Maksimum Puan
@@ -248,7 +252,6 @@ export default function RecommendPage() {
             />
           </div>
 
-          {/* Minimum oy sayısı (güven) */}
           <div className="rec-filter__field">
             <label className="rec-filter__label">
               Minimum Oy Sayısı
@@ -270,7 +273,6 @@ export default function RecommendPage() {
 
           <hr className="rec-filter__divider" />
 
-          {/* Yıl */}
           <div className="rec-filter__field">
             <label className="rec-filter__label">Yıl Aralığı</label>
             <div className="rec-filter__year-row">
@@ -293,7 +295,6 @@ export default function RecommendPage() {
             </div>
           </div>
 
-          {/* Film sayısı */}
           <div className="rec-filter__field">
             <label className="rec-filter__label">
               Film Sayısı
@@ -310,7 +311,6 @@ export default function RecommendPage() {
 
           <hr className="rec-filter__divider" />
 
-          {/* Beğenilen film (öneri tohumu) */}
           <div className="rec-filter__field">
             <label className="rec-filter__label">Beğendiğin Film</label>
             <div className="rec-filter__autocomplete" ref={suggestRef}>
@@ -367,8 +367,7 @@ export default function RecommendPage() {
         </form>
       </aside>
 
-      {/* ── Results ── */}
-      <main className="rec-main">
+      <main className="rec-main" ref={resultsRef}>
         {loading && <div className="rec-loading">Öneriler hesaplanıyor...</div>}
 
         {!loading && !searched && (
@@ -414,7 +413,7 @@ export default function RecommendPage() {
           </>
         )}
       </main>
-      </div> {/* .recommend */}
+      </div>
     </div>
   );
 }

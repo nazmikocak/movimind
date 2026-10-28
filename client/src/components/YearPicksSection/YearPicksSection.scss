@@ -1,6 +1,5 @@
 @use '../../styles/variables' as *;
 
-// ── Wrapper ──────────────────────────────────────────────────────────────────
 .year-picks {
   padding: 0 $space-8 $space-10;
 
@@ -41,7 +40,6 @@
   }
 }
 
-// ── Sol — büyük featured kart ─────────────────────────────────────────────────
 .year-featured {
   position: relative;
   border-radius: $radius-xl;
@@ -160,7 +158,6 @@
   }
 }
 
-// ── Sağ — 4 küçük kart ────────────────────────────────────────────────────────
 .year-small {
   position: relative;
   border-radius: $radius-lg;

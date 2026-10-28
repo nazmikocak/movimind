@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "../Logo/Logo";
+import tmdbLogo from "../../assets/tmdb-logo.svg";
 import "./Footer.scss";
 
 const NAV_LINKS = [
@@ -8,22 +9,23 @@ const NAV_LINKS = [
   { label: "Öneriler", path: "/recommend" },
 ];
 
-const INFO_LINKS = [
-  "Gizlilik Politikası",
-  "Kullanım Koşulları",
-  "Çerez Tercihleri",
-];
+const INFO_LINKS = ["Gizlilik Politikası", "Kullanım Koşulları", "Çerez Tercihleri"];
 
 export default function Footer() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const year = new Date().getFullYear();
+
+  const goTo = (path: string) => {
+    if (pathname === path) window.scrollTo({ top: 0, behavior: "smooth" });
+    else navigate(path);
+  };
 
   return (
     <footer className="footer">
       <div className="footer__inner">
-        {/* Üst satır: logo + nav + bilgi */}
         <div className="footer__top">
-          <div className="footer__brand" onClick={() => navigate("/")}>
+          <div className="footer__brand" onClick={() => goTo("/")}>
             <Logo size="md" className="footer__logo" />
           </div>
 
@@ -32,7 +34,7 @@ export default function Footer() {
               <button
                 key={l.path}
                 className="footer__nav-link"
-                onClick={() => navigate(l.path)}
+                onClick={() => goTo(l.path)}
               >
                 {l.label}
               </button>
@@ -40,52 +42,20 @@ export default function Footer() {
           </nav>
 
           <div className="footer__meta">
+            {/* TMDB kullanım koşulu: logo ve bu uyarı metni zorunlu */}
             <span className="footer__dataset">
-              <a
-                className="footer__dataset-link"
-                href="https://grouplens.org/datasets/movielens/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                MovieLens
-              </a>{" "}
-              veri seti kullanılmıştır.
-            </span>
-            <span className="footer__dataset">
-              Film bilgileri ve görseller{" "}
-              <a
-                className="footer__dataset-link"
-                href="https://www.themoviedb.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                TMDB
-              </a>
-              , IMDb puanları{" "}
-              <a
-                className="footer__dataset-link"
-                href="https://www.omdbapi.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                OMDb API
-              </a>{" "}
-              kaynaklıdır.
-            </span>
-            <span className="footer__dataset">
-              Bu ürün TMDB API'sini kullanır ancak TMDB tarafından onaylanmış veya
-              sertifikalandırılmış değildir.
+              <img className="footer__tmdb-logo" src={tmdbLogo} alt="" />
+              Film bilgileri TMDB ve OMDb API'den alınır. Bu ürün TMDB API'sini
+              kullanır; TMDB tarafından onaylanmış veya sertifikalandırılmış değildir.
             </span>
           </div>
         </div>
 
-        {/* Ayraç */}
         <div className="footer__divider" />
 
-        {/* Alt satır: telif + info linkleri */}
         <div className="footer__bottom">
           <span className="footer__copy">
-            © {year} MOVIMIND, Tüm hakları saklıdır.{" "}
+            © {year} MOVIMIND. Tüm hakları saklıdır.{" "}
             <a
               className="footer__author"
               href="https://www.linkedin.com/in/nazmikocak/"

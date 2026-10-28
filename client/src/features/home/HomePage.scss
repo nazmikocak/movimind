@@ -7,7 +7,7 @@
     max-height: 960px;
     display: flex;
     align-items: center;
-    justify-content: center;  // inner container'ı yatayda ortala
+    justify-content: center;
     perspective: 1400px;
     overflow: hidden;
     background: linear-gradient(125deg, #04060c 0%, #070b12 58%, #05070f 100%);
@@ -101,7 +101,7 @@
     }
   }
 
-  // Tam ekran hero arka planı içinde page-max kapsayıcısı — home__rows ile hizalı
+  // Tam ekran hero içinde içerik, home__rows ile aynı genişlikte hizalanır
   &__hero-inner {
     position: relative;
     z-index: 3;
@@ -194,7 +194,7 @@
     padding: $space-8 $page-pad-x;
     max-width: $page-max;
     margin: 0 auto;
-    overflow: hidden; // scroll satırlarını kapsayıcı içinde tutar
+    overflow: hidden;  // kaydırmalı satırlar kapsayıcı dışına taşmasın
 
     @media (max-width: #{$bp-desktop}) { padding: $space-8 $page-pad-x-tablet; }
     @media (max-width: #{$bp-mobile})  { padding: $space-8 $page-pad-x-mobile; }

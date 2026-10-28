@@ -22,7 +22,7 @@ export default function PromoSection({ movie, movies = [] }: Props) {
     <div className="promo">
       <div className="promo__bg" aria-hidden="true">
         {bgMovies.map((m, i) => {
-          const url = m.imdbId ? getPosterUrl(m.imdbId) : null;
+          const url = getPosterUrl(m);
           return (
             <div
               key={i}

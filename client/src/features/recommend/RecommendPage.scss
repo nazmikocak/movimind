@@ -1,6 +1,5 @@
 @use '../../styles/variables' as *;
 
-// ── Page wrapper ───────────────────────────────────────────────────────────────
 .rec-page {
   padding-bottom: $space-16;
 
@@ -33,14 +32,17 @@
   }
 }
 
-// ── Flex layout ───────────────────────────────────────────────────────────────
 .recommend {
   display: flex;
   align-items: flex-start;
   gap: $space-6;
+
+  @media (max-width: #{$bp-tablet}) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
-// ── Filter panel ──────────────────────────────────────────────────────────────
 .rec-filter {
   width: 340px;
   flex-shrink: 0;
@@ -54,7 +56,8 @@
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
 
   @media (max-width: #{$bp-tablet}) {
-    display: none;
+    width: 100%;
+    padding: $space-5;
   }
 
   &__title {
@@ -120,7 +123,6 @@
     }
   }
 
-  // ── Genre pills ─────────────────────────────────────────────────────────────
   &__genre-pills {
     display: flex;
     flex-wrap: wrap;
@@ -129,7 +131,7 @@
 
   &__genre-pill {
     padding: 5px 12px;
-    border-radius: $radius-pill;
+    border-radius: $radius-lg;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: $text-muted;
@@ -158,7 +160,6 @@
     }
   }
 
-  // ── Range slider ────────────────────────────────────────────────────────────
   &__range {
     -webkit-appearance: none;
     appearance: none;
@@ -201,14 +202,12 @@
     }
   }
 
-  // ── Year row ────────────────────────────────────────────────────────────────
   &__year-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: $space-3;
   }
 
-  // ── Autocomplete ────────────────────────────────────────────────────────────
   &__autocomplete {
     position: relative;
 
@@ -260,14 +259,12 @@
     color: $text-muted;
   }
 
-  // ── Divider ─────────────────────────────────────────────────────────────────
   &__divider {
     border: none;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     margin: $space-2 0 $space-5;
   }
 
-  // ── Submit button ───────────────────────────────────────────────────────────
   &__submit {
     width: 100%;
     padding: $space-3 $space-6;
@@ -309,7 +306,6 @@
     }
   }
 
-  // ── Reset button ─────────────────────────────────────────────────────────────
   &__reset {
     width: 100%;
     padding: $space-2 $space-4;
@@ -333,7 +329,6 @@
   }
 }
 
-// ── Results main ──────────────────────────────────────────────────────────────
 .rec-main {
   flex: 1;
   min-width: 0;
@@ -358,7 +353,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: $radius-md;
-    padding: 8px $space-4 8px 32px;  // left padding for icon
+    padding: 8px $space-4 8px 32px;  // soldaki ikon için boşluk
     color: $text-secondary;
     font-size: $text-sm;
     font-weight: 600;
@@ -389,12 +384,11 @@
     color: $text-muted;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: $radius-pill;
+    border-radius: $radius-lg;
     padding: 3px $space-3;
   }
 }
 
-// ── Results grid — MovieCard always-on overlay ────────────────────────────────
 .rec-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -407,7 +401,6 @@
     grid-template-columns: 1fr;
   }
 
-  // Kartı grid sütununa tam oturt
   .movie-card {
     width: 100%;
 
@@ -418,7 +411,7 @@
     }
   }
 
-  // Force MovieCard hover state always visible
+  // Sonuç listesinde MovieCard'ın hover görünümü hep açık
   .movie-card__poster::after {
     opacity: 1;
   }
@@ -433,7 +426,7 @@
     transform: translateY(0);
   }
 
-  // Enhance hover on top of always-visible state
+  // Üzerine gelince ek vurgu
   .movie-card:hover {
     transform: translateY(-10px);
 
@@ -444,7 +437,6 @@
   }
 }
 
-// ── Empty / Loading ───────────────────────────────────────────────────────────
 .rec-empty {
   padding: $space-6 $space-8;
   text-align: center;
@@ -460,9 +452,13 @@
   }
 
   &__lottie {
-    width: 440px;
-    height: 440px;
+    width: min(440px, 100%);
+    aspect-ratio: 1;
     margin: 0 auto -100px;
+
+    @media (max-width: #{$bp-mobile}) {
+      margin-bottom: -60px;
+    }
   }
 
   &__text {

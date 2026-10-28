@@ -42,7 +42,7 @@
   justify-content: center;
   transition: transform $transition-fast, box-shadow $transition-fast;
 
-  // Hafif noise texture hissi için subtle overlay
+  // Hafif doku hissi veren yarı saydam katman
   &::before {
     content: '';
     position: absolute;
@@ -56,7 +56,7 @@
     pointer-events: none;
   }
 
-  // Hover'da sağ alta dekoratif wordmark
+  // Üzerine gelince sağ altta beliren dekoratif yazı
   &::after {
     content: 'MOVIMIND';
     position: absolute;

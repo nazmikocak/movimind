@@ -9,6 +9,10 @@
   justify-content: center;
   padding: 24px;
   background: rgba(0, 0, 0, 0.78);
+
+  @media (max-width: #{$bp-mobile}) {
+    padding: $space-4;
+  }
   backdrop-filter: blur(6px);
   animation: tonight-fade 200ms ease;
 
@@ -19,8 +23,14 @@
     background: $grad-hero;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: $radius-2xl;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
     padding: 40px 36px 28px;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+
+    @media (max-width: #{$bp-mobile}) {
+      padding: 32px 18px 20px;
+    }
     animation: tonight-pop 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 

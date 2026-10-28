@@ -8,6 +8,7 @@ export interface Movie {
   rating_count: number;
   imdbId: string;
   tmdbId: number;
+  poster_url?: string | null;
   distance?: number;
   reason?: string;
 }

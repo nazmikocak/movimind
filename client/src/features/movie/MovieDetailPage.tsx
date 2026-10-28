@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import {
-  LuArrowLeft, LuStar, LuPlay, LuFilm, LuClock, LuCalendar,
+  LuStar, LuPlay, LuFilm, LuClock, LuCalendar,
   LuGlobe, LuAward, LuInfo, LuChevronLeft, LuChevronRight, LuX,
 } from "react-icons/lu";
 import type { Movie, MovieDetails, CastMember } from "../../types/movie";
@@ -9,6 +9,8 @@ import { API } from "../../services/api";
 import { usePoster } from "../../hooks/usePoster";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { localExtensions } from "../../extensions";
+import NotFoundPage from "../notfound/NotFoundPage";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import "./MovieDetailPage.scss";
 
 function Stars({ rating }: { rating: number }) {
@@ -63,14 +65,14 @@ function CastCard({ member }: { member: CastMember }) {
 }
 
 function HeroBg({ movie, backdrop }: { movie: Movie; backdrop?: string | null }) {
-  const { url, gradient, onError } = usePoster(0, movie.genres, movie.imdbId);
+  const { url, gradient, onError } = usePoster(movie);
   const bg = backdrop || url;
   if (bg) return <img className="mp__hero-bg" src={bg} alt="" onError={onError} />;
   return <div className="mp__hero-ph" style={{ background: gradient }} />;
 }
 
 function Poster({ movie, tmdbPoster }: { movie: Movie; tmdbPoster?: string | null }) {
-  const { url, gradient, onError } = usePoster(0, movie.genres, movie.imdbId);
+  const { url, gradient, onError } = usePoster(movie);
   const src = tmdbPoster || url;
   if (src) return <img src={src} alt={movie.title} onError={onError} loading="lazy" />;
   return <div className="mp__poster-ph" style={{ background: gradient }}><LuFilm /></div>;
@@ -87,11 +89,14 @@ function scrollState(ref: React.RefObject<HTMLDivElement | null>,
 export default function MovieDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams<{ movieId: string }>();
   const passedMovie = location.state?.movie as Movie | undefined;
+  const hasPassedMovie = passedMovie !== undefined;
 
   const [details, setDetails] = useState<MovieDetails | null>(null);
   const [similar, setSimilar] = useState<Movie[]>([]);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   const castScrollRef = useRef<HTMLDivElement>(null);
   const similarScrollRef = useRef<HTMLDivElement>(null);
@@ -102,29 +107,41 @@ export default function MovieDetailPage() {
 
   const movie: Movie | null = (details as Movie | null) ?? passedMovie ?? null;
   const ext = details?.external;
+  useDocumentTitle(notFound ? "Film bulunamadı" : movie?.title ?? "Film");
+
+  // Liste sayfalarından film verisi gelir; paylaşılan linkte ise yalnızca adresteki ID vardır
+  const movieId = passedMovie?.movieId ?? Number(params.movieId);
 
   useEffect(() => {
-    if (!passedMovie) return;
-    const id = passedMovie.movieId;
-    API.movieDetails(id).then(setDetails).catch(() => {});
-    API.similar(id, 10).then(setSimilar).catch(() => {});
+    setDetails(null);
+    setNotFound(false);
+    if (!Number.isInteger(movieId) || movieId <= 0) {
+      setNotFound(true);
+      return;
+    }
+    API.movieDetails(movieId)
+      .then(setDetails)
+      .catch(() => { if (!hasPassedMovie) setNotFound(true); });
+    API.similar(movieId, 10).then(setSimilar).catch(() => {});
     window.scrollTo(0, 0);
-  }, [passedMovie?.movieId]);
+  }, [movieId, hasPassedMovie]);
 
   useEffect(() => {
     scrollState(castScrollRef, setCastLeft, setCastRight);
     scrollState(similarScrollRef, setSimLeft, setSimRight);
   }, [details, similar.length]);
 
-  if (!movie) {
+  if (notFound) {
     return (
-      <div className="mp__empty">
-        Film bulunamadı.
-        <button className="mp__back-btn" onClick={() => navigate(-1)}>
-          <LuArrowLeft /> Geri dön
-        </button>
-      </div>
+      <NotFoundPage
+        title="Film bulunamadı"
+        message="Bu film kataloğumuzda yok ya da bağlantı hatalı. Benzer filmleri keşfetmek için öneri sayfasına göz atabilirsin."
+      />
     );
+  }
+
+  if (!movie) {
+    return <div className="mp__loading" aria-busy="true" />;
   }
 
   const tags = movie.tags ? movie.tags.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 20) : [];
@@ -132,13 +149,11 @@ export default function MovieDetailPage() {
 
   return (
     <div className="mp">
-      {/* Hero backdrop */}
       <div className="mp__hero">
         <HeroBg movie={movie} backdrop={ext?.backdrop} />
         <div className="mp__hero-overlay" />
       </div>
 
-      {/* Ana içerik */}
       <div className="mp__body page-container">
         <div className="mp__poster">
           <Poster movie={movie} tmdbPoster={ext?.poster} />
@@ -148,7 +163,6 @@ export default function MovieDetailPage() {
           <h1 className="mp__title">{movie.title}</h1>
           {ext?.tagline && <p className="mp__tagline">{ext.tagline}</p>}
 
-          {/* Puanlar */}
           <div className="mp__scores">
             <Stars rating={movie.avg_rating} />
             {ext?.imdb_rating && (
@@ -166,7 +180,6 @@ export default function MovieDetailPage() {
             )}
           </div>
 
-          {/* Meta şerit */}
           <div className="mp__meta-strip">
             {movie.year && <span className="mp__meta"><LuCalendar />{movie.year}</span>}
             {ext?.runtime && <span className="mp__meta"><LuClock />{ext.runtime} dk</span>}
@@ -174,19 +187,16 @@ export default function MovieDetailPage() {
             {ext?.rated && <span className="mp__meta mp__meta--rated">{ext.rated}</span>}
           </div>
 
-          {/* Türler */}
           <div className="mp__genres">
             {movie.genres.split("|").map((g) => (
               <span key={g} className="mp__genre">{g}</span>
             ))}
           </div>
 
-          {/* Özet (TMDb > OMDb) */}
           {(ext?.overview || ext?.plot) && (
             <p className="mp__overview">{ext.overview || ext.plot}</p>
           )}
 
-          {/* Yönetmen */}
           {ext?.director && (
             <div className="mp__director">
               <span className="mp__director-label">Yönetmen</span>
@@ -194,21 +204,18 @@ export default function MovieDetailPage() {
             </div>
           )}
 
-          {/* Ödüller */}
           {ext?.awards && ext.awards !== "N/A" && (
             <div className="mp__awards">
               <LuAward /><span>{ext.awards}</span>
             </div>
           )}
 
-          {/* Öneri nedeni */}
           {movie.reason && (
             <div className="mp__reason">
               <LuInfo /><span>{movie.reason}</span>
             </div>
           )}
 
-          {/* Butonlar */}
           <div className="mp__actions">
             {localExtensions.map(({ MovieActions }, i) =>
               MovieActions ? <MovieActions key={i} movie={movie} /> : null)}
@@ -232,7 +239,6 @@ export default function MovieDetailPage() {
         </div>
       </div>
 
-      {/* Oyuncu kadrosu */}
       {cast.length > 0 && (
         <div className="mp__cast-section page-container">
           <div className="mp__section-title mp__section-title--big">Oyuncu Kadrosu</div>
@@ -257,7 +263,6 @@ export default function MovieDetailPage() {
         </div>
       )}
 
-      {/* Benzer filmler */}
       {similar.length > 0 && (
         <div className="mp__similar-section page-container">
           <div className="mp__section-title mp__section-title--big">Benzer Filmler</div>
@@ -285,7 +290,6 @@ export default function MovieDetailPage() {
         </div>
       )}
 
-      {/* Fragman overlay */}
       {showTrailer && ext?.trailer_key && (
         <div className="mp__trailer-overlay" onClick={() => setShowTrailer(false)}>
           <div className="mp__trailer-panel" onClick={(e) => e.stopPropagation()}>

@@ -7,7 +7,7 @@ import type {
   MovieDetails,
 } from "../types/movie";
 
-// Yalnızca kendi server'ımız — başka hiçbir dış kaynak (madde 6)
+// Tüm istekler yalnızca kendi API'mize gider
 const BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
 export async function get<T>(path: string): Promise<T> {

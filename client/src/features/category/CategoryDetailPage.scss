@@ -1,6 +1,5 @@
 @use '../../styles/variables' as *;
 
-// ── Hero Banner ─────────────────────────────────────────────────────────────
 .cat-hero {
   position: relative;
   margin-top: calc(-1 * #{$navbar-top-height});
@@ -39,7 +38,6 @@
   }
 }
 
-// ── Page body ────────────────────────────────────────────────────────────────
 .cat-page {
   &__body {
     max-width: 1200px;
@@ -105,7 +103,6 @@
     font-weight: 500;
   }
 
-  // ── Film grid ───────────────────────────────────────────────────────────
   &__grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -134,7 +131,6 @@
     }
   }
 
-  // ── Skeleton loading ─────────────────────────────────────────────────────
   &__loading {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

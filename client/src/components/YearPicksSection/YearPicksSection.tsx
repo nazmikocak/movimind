@@ -6,7 +6,7 @@ import "./YearPicksSection.scss";
 
 function FeaturedCard({ movie }: { movie: Movie }) {
   const navigate = useNavigate();
-  const { url, gradient, onError } = usePoster(movie.tmdbId, movie.genres, movie.imdbId);
+  const { url, gradient, onError } = usePoster(movie);
   const genres = movie.genres.split("|").slice(0, 3);
 
   return (
@@ -50,7 +50,7 @@ function FeaturedCard({ movie }: { movie: Movie }) {
 
 function SmallCard({ movie }: { movie: Movie }) {
   const navigate = useNavigate();
-  const { url, gradient, onError } = usePoster(movie.tmdbId, movie.genres, movie.imdbId);
+  const { url, gradient, onError } = usePoster(movie);
 
   return (
     <div

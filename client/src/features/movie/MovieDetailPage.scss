@@ -1,12 +1,11 @@
 @use '../../styles/variables' as *;
 
-// ── Sayfa giriş animasyonu (kasma hissini azaltır) ───────────────────────────
+// Giriş animasyonu sayfa geçişindeki takılma hissini azaltır
 @keyframes mp-fade-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-// ── Hero ─────────────────────────────────────────────────────────────────────
 .mp {
   animation: mp-fade-in 0.28s ease-out;
   will-change: opacity;
@@ -34,7 +33,6 @@
     background: linear-gradient(to top, $bg-page 0%, transparent 60%);
   }
 
-  // ── Ana içerik ──────────────────────────────────────────────────────────────
   &__body {
     display: grid;
     grid-template-columns: 220px 1fr;
@@ -81,7 +79,6 @@
     color: $text-muted; margin-bottom: $space-4;
   }
 
-  // ── Puanlar ──────────────────────────────────────────────────────────────────
   &__scores {
     display: flex; align-items: center;
     gap: $space-5; flex-wrap: wrap;
@@ -114,7 +111,6 @@
     &--meta &-label { color: $accent-red-light; }
   }
 
-  // ── Meta şerit ───────────────────────────────────────────────────────────────
   &__meta-strip {
     display: flex; flex-wrap: wrap; gap: $space-3;
     margin-bottom: $space-5;
@@ -132,7 +128,6 @@
     &--algo  { color: $accent-red-light; border-color: rgba(229,9,20,0.3); background: rgba(229,9,20,0.06); }
   }
 
-  // ── Türler ───────────────────────────────────────────────────────────────────
   &__genres {
     display: flex; flex-wrap: wrap; gap: $space-2;
     margin-bottom: $space-5;
@@ -147,7 +142,6 @@
     font-size: $text-sm; font-weight: 600;
   }
 
-  // ── Özet, yönetmen, ödüller ───────────────────────────────────────────────────
   &__overview {
     font-size: $text-base; color: $text-secondary;
     line-height: 1.75; margin-bottom: $space-5;
@@ -179,7 +173,6 @@
     svg { flex-shrink: 0; margin-top: 1px; color: $accent-red; }
   }
 
-  // ── Butonlar ─────────────────────────────────────────────────────────────────
   &__actions {
     display: flex; flex-wrap: wrap; gap: $space-3;
     margin-bottom: $space-6;
@@ -206,7 +199,6 @@
     }
   }
 
-  // ── Puan barları ─────────────────────────────────────────────────────────────
   &__rating-bars {
     margin-bottom: $space-6;
   }
@@ -238,7 +230,6 @@
     min-width: 60px; text-align: right;
   }
 
-  // ── Section helpers ──────────────────────────────────────────────────────────
   &__section { margin-bottom: $space-6; }
 
   &__section-title {
@@ -254,7 +245,6 @@
     }
   }
 
-  // ── Etiketler ────────────────────────────────────────────────────────────────
   &__tags { display: flex; flex-wrap: wrap; gap: $space-2; }
 
   &__tag {
@@ -265,7 +255,6 @@
   }
 
 
-  // ── Oyuncu kadrosu ────────────────────────────────────────────────────────────
   &__cast-section { margin-bottom: $space-8; }
 
   &__cast-viewport { position: relative; }
@@ -318,7 +307,6 @@
     &--next { right: -12px; }
   }
 
-  // ── Benzer filmler ────────────────────────────────────────────────────────────
   &__similar-section { margin-bottom: $space-10; }
 
   &__similar-viewport { position: relative; }
@@ -346,7 +334,6 @@
     &--next { right: $space-4; }
   }
 
-  // ── Fragman overlay ───────────────────────────────────────────────────────────
   &__trailer-overlay {
     position: fixed; inset: 0; z-index: 200;
     background: rgba(0,0,0,.85); backdrop-filter: blur(6px);
@@ -375,9 +362,24 @@
     &:hover { background: $accent-red; }
   }
 
-  // ── Boş durum ─────────────────────────────────────────────────────────────────
-  &__empty {
-    padding: 80px; text-align: center; color: $text-muted;
-    display: flex; flex-direction: column; align-items: center; gap: $space-5;
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+
+    &::after {
+      content: "";
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(229, 9, 20, 0.2);
+      border-top-color: $accent-red;
+      border-radius: 50%;
+      animation: mp-spin 0.8s linear infinite;
+    }
   }
+}
+
+@keyframes mp-spin {
+  to { transform: rotate(360deg); }
 }

@@ -1,6 +1,6 @@
 @use '../../styles/variables' as *;
 
-// DatasetPage artık .page-container üzerinde — max-width ve pad oradan gelir.
+// Genişlik ve yatay boşluk .page-container'dan gelir
 .dataset {
   padding-top: $space-8;
   padding-bottom: $space-10;
@@ -9,7 +9,6 @@
   &__page-title { font-size: $text-2xl; font-weight: 800; font-family: $font-display; color: $text-primary; letter-spacing: -0.02em; }
   &__page-sub { font-size: $text-base; color: $text-muted; margin-top: $space-2; }
 
-  // ── Stat kartları ──────────────────────────────────────────────────────────────
   &__stat-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -52,7 +51,6 @@
     }
   }
 
-  // ── Grafikler ──────────────────────────────────────────────────────────────────
   &__charts {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -90,7 +88,6 @@
 
   &__chart-body { width: 100%; }
 
-  // ── Betimsel istatistikler ─────────────────────────────────────────────────────
   &__desc-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -120,7 +117,6 @@
     margin-top: $space-1;
   }
 
-  // ── Model performansı ──────────────────────────────────────────────────────────
   &__model-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -163,7 +159,6 @@
     margin-top: $space-1;
   }
 
-  // ── Bölüm ortak ───────────────────────────────────────────────────────────────
   &__section {
     margin-bottom: $space-10;
     margin-top: $space-10;
@@ -204,7 +199,6 @@
     padding: 3px 10px;
   }
 
-  // ── Tablolar ──────────────────────────────────────────────────────────────────
   &__table-wrap {
     overflow-x: auto;
     border-radius: $radius-lg;
@@ -243,7 +237,6 @@
     .count { color: $text-muted; white-space: nowrap; }
   }
 
-  // ── Öncesi/sonrası ────────────────────────────────────────────────────────────
   &__cleaning {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -281,7 +274,6 @@
     }
   }
 
-  // ── Örneklem yüzde barı ───────────────────────────────────────────────────────
   &__sample-bars {
     display: flex;
     flex-direction: column;
@@ -321,7 +313,6 @@
     margin-top: $space-3;
   }
 
-  // ── Veri seti atfı ──────────────────────────────────────────────────────────
   &__cite {
     background: $bg-card;
     border: 1px solid $border-subtle;

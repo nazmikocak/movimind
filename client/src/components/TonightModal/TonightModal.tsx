@@ -19,8 +19,8 @@ import { setPreference } from "../../services/preferences";
 import "./TonightModal.scss";
 
 interface GenreOption {
-  key: string; // backend tür anahtarı (İngilizce)
-  label: string; // TR etiket
+  key: string;  // backend tür anahtarı (Action, Comedy ...)
+  label: string;  // arayüzde gösterilen Türkçe ad
   Icon: IconType;
 }
 

@@ -15,6 +15,12 @@ export default function Navbar() {
   const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
 
+  // Zaten o sayfadaysa yeniden yönlendirmek yerine başa kaydır
+  const goTo = (path: string) => {
+    if (pathname === path) window.scrollTo({ top: 0, behavior: "smooth" });
+    else navigate(path);
+  };
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
@@ -26,7 +32,7 @@ export default function Navbar() {
     <nav className={`navbar ${scrolled ? "navbar--scrolled" : ""}`}>
       <div className="navbar__inner">
         <div className="navbar__left">
-          <div className="navbar__logo" onClick={() => navigate("/")}>
+          <div className="navbar__logo" onClick={() => goTo("/")}>
             <div className="navbar__brand">
               <Logo size="md" />
             </div>
@@ -39,7 +45,7 @@ export default function Navbar() {
               <button
                 key={l.path}
                 className={`navbar__link${pathname === l.path ? " navbar__link--active" : ""}`}
-                onClick={() => navigate(l.path)}
+                onClick={() => goTo(l.path)}
               >
                 {l.label}
               </button>

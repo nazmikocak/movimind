@@ -12,8 +12,9 @@ import TonightModal from "../../components/TonightModal/TonightModal";
 import FaqSection from "../../components/FaqSection/FaqSection";
 import { localExtensions } from "../../extensions";
 import "./HomePage.scss";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
-// Backend tür anahtarı → TR etiket (Bu Gece İçin başlığı için)
+// Backend tür anahtarı -> Türkçe ad ("Bu Gece İçin" başlığında)
 const GENRE_TR: Record<string, string> = {
   Action: "Aksiyon", Comedy: "Komedi", Drama: "Dram", Horror: "Korku",
   "Sci-Fi": "Bilim Kurgu", Romance: "Romantik", Thriller: "Gerilim",
@@ -22,12 +23,12 @@ const GENRE_TR: Record<string, string> = {
 };
 
 export default function HomePage() {
+  useDocumentTitle("Ana Sayfa");
   const navigate = useNavigate();
   const [topRated, setTopRated] = useState<Movie[]>([]);
   const [mostRated, setMostRated] = useState<Movie[]>([]);
   const [yearPicks, setYearPicks] = useState<Movie[]>([]);
 
-  // Tonight modal + tercih bazlı satırlar
   const [showModal, setShowModal] = useState(false);
   const [prefGenre, setPrefGenre] = useState<string | null>(
     getPreference()?.genre ?? null,
@@ -42,7 +43,7 @@ export default function HomePage() {
       .then(setYearPicks)
       .catch(() => {});
 
-    // Modal: server yeniden başlatıldıysa her açılışta, yoksa günde 1 kez
+    // Modal günde bir kez; server yeniden başladıysa her açılışta
     API.health().then(({ boot_id }) => {
       if (shouldShowModal(boot_id)) {
         setShowModal(true);
@@ -51,7 +52,6 @@ export default function HomePage() {
     }).catch(() => {});
   }, []);
 
-  // Tercih varsa "Bu Gece İçin" + "Sizin İçin" satırlarını doldur
   useEffect(() => {
     if (!prefGenre) {
       setTonight([]);
@@ -95,7 +95,7 @@ export default function HomePage() {
         <div className="home__hero-glow" />
         <div className="home__hero-collage" aria-hidden="true">
           {heroTiles.map((movie, i) => {
-            const poster = movie.imdbId ? getPosterUrl(movie.imdbId) : null;
+            const poster = getPosterUrl(movie);
             const tileStyle = poster ? { backgroundImage: `url(${poster})` } : undefined;
             return (
               <div
@@ -136,7 +136,6 @@ export default function HomePage() {
         <YearPicksSection movies={yearPicks} />
         <GenreGrid />
 
-        {/* Modal tercihine göre — modelden gelen satırlar (madde 7, 11) */}
         {tonight.length > 0 && (
           <MovieRow
             title={`Bu Gece İçin · ${prefLabel}`}

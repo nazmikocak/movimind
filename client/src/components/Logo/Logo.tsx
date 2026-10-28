@@ -5,7 +5,7 @@ interface LogoProps {
   className?: string;
 }
 
-/** MOVIMIND kelime-markası — kırmızı, kalın (Poppins). Emoji/görsel yok. */
+/** Kırmızı, kalın MOVIMIND yazı logosu (Poppins). */
 export default function Logo({ size = "md", className = "" }: LogoProps) {
   return (
     <span className={`logo logo--${size} ${className}`} aria-label="MOVIMIND">

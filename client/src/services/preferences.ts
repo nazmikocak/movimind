@@ -1,24 +1,17 @@
-// "Bugün ne izlemek istersin?" modalı + kullanıcı tür tercihi.
-//
-// Gösterim kuralı:
-//   - Sayfa yenilemede ASLA gösterme  (sessionStorage bayrağı)
-//   - Server yeniden başlatıldıysa HER ZAMAN göster (boot_id değişti)
-//   - Aynı boot_id ile günde 1 kez göster (tarih değişti)
+// "Bugün ne izlemek istersin?" modalı ve kullanıcının tür tercihi.
+// Sayfa yenilenince gösterilmez; server yeniden başladıysa her zaman, aksi halde
+// günde bir kez gösterilir.
 
-const SESSION_KEY = "movimind:tonight:shown";    // sessionStorage — sekme kapanınca sıfırlanır
-const BOOT_KEY    = "movimind:tonight:boot_id";   // localStorage
-const DATE_KEY    = "movimind:tonight:date";       // localStorage
-const PREF_KEY    = "movimind:tonight:pref";       // localStorage — { genre, date }
+const SESSION_KEY = "movimind:tonight:shown";  // sessionStorage: sekme kapanınca sıfırlanır
+const BOOT_KEY    = "movimind:tonight:boot_id";
+const DATE_KEY    = "movimind:tonight:date";
+const PREF_KEY    = "movimind:tonight:pref";   // { genre, date }
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/**
- * Verilen boot_id ile modalın gösterilip gösterilmeyeceğini döndürür.
- * Sayfa yenilemede (sessionStorage dolu) false.
- * Server yeniden başlatıldıysa veya yeni gün ise true.
- */
+/** Modal bu açılışta gösterilmeli mi (dosya başındaki kurala göre). */
 export function shouldShowModal(bootId: string): boolean {
   if (sessionStorage.getItem(SESSION_KEY)) return false;
 
@@ -28,7 +21,7 @@ export function shouldShowModal(bootId: string): boolean {
   return storedBoot !== bootId || storedDate !== today();
 }
 
-/** Modal gösterildi olarak işaretle (sessionStorage + localStorage güncelle). */
+/** Modalı bu oturum ve bu gün için gösterildi olarak işaretler. */
 export function markModalShown(bootId: string): void {
   sessionStorage.setItem(SESSION_KEY, "1");
   localStorage.setItem(BOOT_KEY, bootId);

@@ -9,7 +9,7 @@ body {
   color: $text-primary;
 }
 
-// Tüm sayfalarda tutarlı yatay boşluk + maksimum genişlik (madde 14)
+// Tüm sayfalarda ortak maksimum genişlik ve yatay boşluk
 .page-container {
   width: 100%;
   max-width: $page-max;

@@ -15,7 +15,7 @@ function SearchResultCard({
   onClick: (m: Movie) => void;
 }) {
   const [imgErr, setImgErr] = useState(false);
-  const url = movie.imdbId ? getPosterUrl(movie.imdbId) : null;
+  const url = getPosterUrl(movie);
   const gradient = posterGradient(movie.genres);
   const firstGenre = movie.genres.split("|")[0];
 
@@ -54,8 +54,12 @@ function SearchResultCard({
   );
 }
 
+const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
+
 export default function NavbarSearch() {
   const [query, setQuery] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [results, setResults] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -70,6 +74,7 @@ export default function NavbarSearch() {
         !wrapperRef.current.contains(e.target as Node)
       ) {
         setOpen(false);
+        setExpanded(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -81,6 +86,7 @@ export default function NavbarSearch() {
       if (e.key === "Escape") {
         setOpen(false);
         setQuery("");
+        setExpanded(false);
       }
     };
     document.addEventListener("keydown", handler);
@@ -115,39 +121,53 @@ export default function NavbarSearch() {
 
   const handleSelect = (movie: Movie) => {
     setOpen(false);
+    setExpanded(false);
     setQuery("");
     setResults([]);
     navigate(`/movie/${movie.movieId}`, { state: { movie } });
   };
 
   const handleClear = () => {
-    setQuery("");
+    clearTimeout(timerRef.current);
     setResults([]);
     setOpen(false);
-    clearTimeout(timerRef.current);
+    // Mobilde boş kutudaki çarpı aramayı kapatır
+    if (!query) setExpanded(false);
+    else inputRef.current?.focus();
+    setQuery("");
+  };
+
+  const handleToggle = () => {
+    if (isMobile()) setExpanded(true);
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
 
   return (
-    <div className="search" ref={wrapperRef}>
+    <div className={`search${expanded ? " search--expanded" : ""}`} ref={wrapperRef}>
       <div
         className={`search__input-wrap${open && results.length ? " search__input-wrap--open" : ""}`}
       >
-        <svg
-          className="search__icon"
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
+        <button type="button" className="search__toggle" onClick={handleToggle} aria-label="Film ara">
+          <svg
+            className="search__icon"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </button>
         <input
+          ref={inputRef}
           className="search__input"
+          aria-label="Film ara"
           type="text"
           placeholder="Bir film arayın..."
           value={query}
@@ -157,8 +177,8 @@ export default function NavbarSearch() {
           spellCheck={false}
         />
         {loading && <div className="search__spinner" />}
-        {query && !loading && (
-          <button className="search__clear" onClick={handleClear}>
+        {(query || expanded) && !loading && (
+          <button type="button" className="search__clear" onClick={handleClear} aria-label={query ? "Aramayı temizle" : "Aramayı kapat"}>
             <svg
               width="13"
               height="13"

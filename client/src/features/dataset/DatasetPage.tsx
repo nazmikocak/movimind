@@ -12,6 +12,7 @@ import {
 import type { AnalysisData } from "../../types/movie";
 import { API } from "../../services/api";
 import "./DatasetPage.scss";
+import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 
 const fmt = (n: number) => n?.toLocaleString("tr-TR");
 const RED = "#E50914";
@@ -24,7 +25,7 @@ const tooltipStyle = {
   fontSize: 13,
   boxShadow: "0 8px 28px rgba(0,0,0,0.55)",
 };
-// Tooltip içi metinler her zaman beyaz/açık gri (okunaklılık — seri rengi kullanılmaz)
+// Tooltip metni her zaman açık renk: seri rengi koyu zeminde okunmuyor
 const tooltipItemStyle = { color: "#FFFFFF" };
 const tooltipLabelStyle = { color: "#B3B3B3", fontWeight: 600, marginBottom: 4 };
 
@@ -99,6 +100,7 @@ function Bar2({ pct, label, sub }: { pct: number; label: string; sub: string }) 
 }
 
 export default function DatasetPage() {
+  useDocumentTitle("Veri Seti Analizi");
   const [data, setData] = useState<AnalysisData | null>(null);
 
   useEffect(() => {
@@ -112,7 +114,6 @@ export default function DatasetPage() {
 
   const genreCount = data?.genre_distribution?.length ?? 0;
 
-  // Oy sayısına göre film dağılımı (uzun kuyruk) — diğer grafiklerden bağımsız
   const popularity = (data?.popularity_distribution ?? []).map((p) => ({
     name: p.bucket, value: p.count,
   }));
@@ -128,7 +129,6 @@ export default function DatasetPage() {
         </p>
       </div>
 
-      {/* Stat kartları */}
       <div className="dataset__stat-grid">
         <StatCard Icon={LuFilm} value={fmt(stats?.total_movies ?? 0)} label="Film Sayısı" />
         <StatCard Icon={LuUsers} value={fmt(stats?.total_users ?? 0)} label="Kullanıcı Sayısı" />
@@ -136,7 +136,6 @@ export default function DatasetPage() {
         <StatCard Icon={LuActivity} value={String(stats?.avg_rating ?? "—")} label="Ortalama Puan" />
       </div>
 
-      {/* Grafikler */}
       <div className="dataset__charts">
         <ChartCard Icon={LuChartBar} title="Tür Dağılımı (Film Sayısı)">
           <ResponsiveContainer width="100%" height={320}>
@@ -221,7 +220,6 @@ export default function DatasetPage() {
         </ChartCard>
       </div>
 
-      {/* Veri seti istatistikleri */}
       {d && stats && (
         <div className="dataset__section">
           <div className="dataset__section-head">
@@ -249,7 +247,6 @@ export default function DatasetPage() {
         </div>
       )}
 
-      {/* Model performansı */}
       {model && (
         <div className="dataset__section">
           <div className="dataset__section-head">
@@ -293,11 +290,9 @@ export default function DatasetPage() {
         </div>
       )}
 
-      {/* Tablolar */}
       {data && <MovieTable Icon={LuTrophy} title="En Yüksek Ortalama Puanlı 10 Film" rows={data.top_rated} />}
       {data && <MovieTable Icon={LuFlame} title="En Çok Puanlanan 10 Film" rows={data.most_rated} />}
 
-      {/* Veri temizleme öncesi / sonrası */}
       <div className="dataset__section">
         <div className="dataset__section-head">
           <span className="dataset__section-icon"><LuLayers /></span>
@@ -336,7 +331,6 @@ export default function DatasetPage() {
         </div>
       </div>
 
-      {/* Örneklem yüzde barı (kullanıcı ek isteği) */}
       {si && (
         <div className="dataset__section dataset__sample">
           <div className="dataset__section-head">
@@ -358,16 +352,16 @@ export default function DatasetPage() {
         </div>
       )}
 
-      {/* Veri seti atfı (MovieLens / GroupLens lisans gereği) */}
       <div className="dataset__section">
         <div className="dataset__section-head">
           <span className="dataset__section-icon"><LuBookOpen /></span>
           <span className="dataset__section-title">Veri Seti ve Atıf</span>
         </div>
+        {/* MovieLens kullanım lisansı atıf istiyor */}
         <div className="dataset__cite">
           <p className="dataset__cite-text">
             Bu projede, Minnesota Üniversitesi <strong>GroupLens</strong> araştırma
-            grubu tarafından sağlanan <strong>MovieLens ml-32m</strong> veri seti
+            grubu tarafından sağlanan <strong>MovieLens 32M</strong> veri seti
             kullanılmıştır. Veri seti, 9 Ocak 1995 – 12 Ekim 2023 tarihleri arasında
             200.948 kullanıcının 87.585 filme verdiği 32.000.204 puanlama ile
             2.000.072 etiketi içerir. Veri seti yalnızca akademik amaçla kullanılmıştır.

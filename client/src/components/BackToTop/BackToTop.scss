@@ -1,0 +1,48 @@
+@use '../../styles/variables' as *;
+
+.back-to-top {
+  position: fixed;
+  right: $page-pad-x;
+  bottom: $space-8;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: $radius-xl;
+  background: $grad-red;
+  color: $text-primary;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(229, 9, 20, 0.35);
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition: opacity $transition-base, transform $transition-base, box-shadow $transition-fast;
+
+  &--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(229, 9, 20, 0.5);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $text-primary;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: #{$bp-tablet}) {
+    right: $page-pad-x-mobile;
+    bottom: $space-5;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}

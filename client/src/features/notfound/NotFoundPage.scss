@@ -1,0 +1,102 @@
+@use '../../styles/variables' as *;
+
+.not-found {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - #{$navbar-top-height} - 220px);
+  padding-top: $space-12;
+  padding-bottom: $space-12;
+  text-align: center;
+  overflow: hidden;
+
+  &__glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 640px;
+    max-width: 120%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -55%);
+    background: radial-gradient(circle, rgba(122, 31, 75, 0.45) 0%, rgba(34, 28, 58, 0.25) 45%, transparent 70%);
+    filter: blur(20px);
+    pointer-events: none;
+  }
+
+  &__code {
+    position: relative;
+    font-family: $font-display;
+    font-size: clamp(96px, 22vw, 180px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    background: $grad-accent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  &__title {
+    position: relative;
+    margin-top: $space-4;
+    font-family: $font-display;
+    font-size: $text-2xl;
+    font-weight: 800;
+    color: $text-primary;
+
+    @media (max-width: #{$bp-mobile}) {
+      font-size: $text-xl;
+    }
+  }
+
+  &__text {
+    position: relative;
+    max-width: 480px;
+    margin-top: $space-3;
+    font-size: $text-base;
+    line-height: 1.6;
+    color: $text-muted;
+  }
+
+  &__actions {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: $space-3;
+    margin-top: $space-8;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 12px 24px;
+    border: 1px solid $border-default;
+    border-radius: $radius-xl;
+    background: rgba(255, 255, 255, 0.06);
+    color: $text-primary;
+    font-size: $text-sm;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform $transition-fast, background $transition-fast, box-shadow $transition-fast;
+
+    &:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    &--primary {
+      border: none;
+      background: $grad-red;
+      box-shadow: 0 6px 20px rgba(229, 9, 20, 0.4);
+
+      &:hover {
+        background: $grad-red;
+        box-shadow: 0 8px 24px rgba(229, 9, 20, 0.5);
+      }
+    }
+  }
+}

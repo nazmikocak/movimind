@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import type { Movie } from '../types/movie';
 import { getPosterUrl, posterGradient } from '../services/tmdb';
 
-export function usePoster(_tmdbId: number, genres: string, imdbId?: string) {
-  // imdbId üzerinden direkt URL — fetch yok, API key yok
-  const url = imdbId ? getPosterUrl(imdbId) : null;
+/** Kart posteri: server'ın verdiği TMDb adresi; yüklenemezse türe göre gradyan. */
+export function usePoster(movie: Pick<Movie, 'genres' | 'poster_url'> | null) {
+  const url = movie ? getPosterUrl(movie) : null;
   const [hasError, setHasError] = useState(false);
 
   return {
     url:      hasError ? null : url,
-    gradient: posterGradient(genres),
-    onError:  () => setHasError(true),   // img onError'a bağla
+    gradient: posterGradient(movie?.genres ?? 'Drama'),
+    onError:  () => setHasError(true),
   };
 }

@@ -18,7 +18,6 @@
     }
   }
 
-  // ── Üst satır ──────────────────────────────────────────────────────────────
   &__top {
     display: flex;
     align-items: center;
@@ -53,6 +52,11 @@
     gap: $space-1;
     flex: 1;
     flex-wrap: wrap;
+
+    // Butonların iç boşluğu metni logoyla aynı hizaya getirmek için dengelenir
+    @media (max-width: #{$bp-tablet}) {
+      margin-left: -$space-3;
+    }
   }
 
   &__nav-link {
@@ -75,6 +79,10 @@
   &__meta {
     flex-shrink: 0;
     max-width: 280px;
+
+    @media (max-width: #{$bp-tablet}) {
+      max-width: none;
+    }
   }
 
   &__dataset {
@@ -98,14 +106,20 @@
     & + & { margin-top: $space-2; }
   }
 
-  // ── Ayraç ──────────────────────────────────────────────────────────────────
+  // TMDB koşulu: onaylı logo değiştirilmeden ve MOVIMIND logosundan küçük kullanılır
+  &__tmdb-logo {
+    display: block;
+    height: 10px;
+    width: auto;
+    margin-bottom: $space-1;
+  }
+
   &__divider {
     height: 1px;
     background: $border-subtle;
     margin: $space-5 0 $space-4;
   }
 
-  // ── Alt satır ──────────────────────────────────────────────────────────────
   &__bottom {
     display: flex;
     align-items: center;

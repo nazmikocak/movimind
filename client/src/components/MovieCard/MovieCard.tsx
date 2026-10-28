@@ -9,11 +9,7 @@ interface Props {
 }
 
 export default function MovieCard({ movie, onClick }: Props) {
-  const { url, gradient, onError } = usePoster(
-    movie.tmdbId,
-    movie.genres,
-    movie.imdbId,
-  );
+  const { url, gradient, onError } = usePoster(movie);
   const firstGenre = movie.genres.split("|")[0];
 
   return (

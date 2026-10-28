@@ -1,14 +1,11 @@
-// Posterler server proxy'sinden gelir — client hiçbir dış servise bağlanmaz (madde 6).
-// /api/poster/{imdbId} metahub/TMDb posterini server üzerinden döndürür.
+// Poster adresleri server'dan hazır gelir; tarayıcı TMDb API'sine değil, yalnızca görsel CDN'ine gider.
+import type { Movie } from "../types/movie";
 
-import { API } from "./api";
-
-export function getPosterUrl(imdbId: string): string | null {
-  if (!imdbId || imdbId === "tt0000000") return null;
-  return `${API.base}/api/poster/${imdbId}`;
+export function getPosterUrl(movie: Pick<Movie, "poster_url">): string | null {
+  return movie.poster_url ?? null;
 }
 
-// Tür bazlı gradient — poster yüklenemezse gösterilir (kırmızı/siyah/bordo paleti)
+// Poster yüklenemezse türe göre gradyan gösterilir
 const GENRE_GRADIENTS: Record<string, string> = {
   Drama: "linear-gradient(135deg,#2a1216 0%,#0d0608 100%)",
   Crime: "linear-gradient(135deg,#1a0608 0%,#0a0304 100%)",
