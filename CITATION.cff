@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "Bu yazılımı kullanırsanız lütfen aşağıdaki şekilde atıf yapın."
-title: "MOVIMIND: MovieLens ml-32m üzerinde KNN (Öklid) tabanlı film öneri sistemi"
+title: "MOVIMIND: MovieLens 32M üzerinde KNN (Öklid) tabanlı film öneri sistemi"
 type: software
 authors:
   - family-names: "Koçak"

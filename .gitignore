@@ -1,17 +1,17 @@
-# ── Yalnızca yerel eklentiler (depoya ve canlıya gitmez) ────
+# Yalnızca yerel eklentiler (depoya ve canlıya gitmez)
 client/src/extensions/local/
 server/app/api/local/
 
-# ── Ders/rapor belgeleri (yalnızca yerelde kalır) ───────────
+# Ders ve rapor belgeleri
 docs/
 
-# ── Veri seti (büyük dosyalar GitHub'a gitmez) ──────────────
+# Veri seti ve model (GitHub dosya sınırını aşar; model GitHub Release'te)
 server/data/raw/
 server/data/processed/
 server/artifacts/
 *.pkl
 
-# ── Python ──────────────────────────────────────────────────
+# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -23,7 +23,7 @@ env/
 *.log
 server/bootstrap.log
 
-# ── Node / Vite (client) ────────────────────────────────────
+# Node / Vite
 node_modules/
 dist/
 dist-ssr/
@@ -34,13 +34,13 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
-# ── Ortam değişkenleri (anahtarlar) ─────────────────────────
+# Ortam değişkenleri (gizli anahtarlar)
 .env
 .env.local
 .env.*.local
 !.env.example
 
-# ── Editör / OS ─────────────────────────────────────────────
+# Editör / işletim sistemi
 .idea/
 .DS_Store
 *.swp
@@ -48,5 +48,5 @@ pnpm-debug.log*
 *~
 Thumbs.db
 
-# ── Claude Code yerel ayarları (proje .claude izlenir, local izlenmez) ──
+# Claude Code kişisel ayarları (proje ayarları .claude/ altında izlenir)
 .claude/settings.local.json

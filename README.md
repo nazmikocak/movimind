@@ -1,81 +1,141 @@
 # MOVIMIND
 
-> **Veri Madenciliği Dönem Projesi** <br/>
-> *MovieLens ml-32m veri seti üzerinde KNN (Öklid Mesafesi) algoritması ile geliştirilmiş, Netflix dokunuşlarına sahip kişiselleştirilmiş film öneri platformu.*
+> MovieLens 32M veri seti üzerinde çalışan, kişiselleştirilmiş film öneri platformu.
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
-![FastAPI](https://img.shields.io/badge/fastapi-109989?style=for-the-badge&logo=FASTAPI&logoColor=white)
+![Sass](https://img.shields.io/badge/Sass-CC6699?style=for-the-badge&logo=sass&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-109989?style=for-the-badge&logo=fastapi&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
+![pandas](https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Cloudflare Pages](https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflarepages&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)
 
 ## Özet
 
-MOVIMIND, geniş çaplı **MovieLens ml-32m** veri seti üzerinden kullanıcı zevklerine en uygun filmleri önermeyi amaçlayan bir web sistemidir. Proje makine öğrenmesi süreçlerini ve modern web teknolojilerini bir araya getirerek, kullanıcılara modern bir film keşif deneyimi sunar. MOVIMIND film yayını yapmaz; yalnızca öneri, film bilgisi ve resmi fragman sunar.
+MOVIMIND, MovieLens 32M veri seti üzerinde eğitilen bir KNN modeliyle kullanıcının zevkine yakın filmleri öneren bir web uygulamasıdır. Makine öğrenmesi hattı (veri temizleme, eğitim, değerlendirme) ile modern bir web arayüzünü bir araya getirir. MOVIMIND film yayını yapmaz; öneri, film bilgisi ve resmi fragman sunar.
 
 ## Öne Çıkan Özellikler
 
-* **Kişiselleştirilmiş Öneriler:** Kullanıcı geçmişine dayalı olarak KNN (K-Nearest Neighbors) ve Öklid Mesafesi algoritması ile filmler önerilir. (Kosinüs benzerliği yerine veri madenciliği hedefleri doğrultusunda Öklid tercih edilmiştir).
-* **Modern Arayüz:** Gerçekçi bir deneyim için Netflix tasarım kalıpları referans alınarak (Karanlık tema, vurgulu kırmızı tonlar, Inter & Poppins tipografileri) sıfırdan oluşturulmuş React arayüzü.
-* **Tam Otomasyon:** Arka planda veri ayıklama, model eğitimi ve API sunumu birbirine entegredir. Sistemin ayağa kalkması tek bir komutla sağlanır.
-* **Güvenli Proxy Mimarisi:** Frontend (İstemci) hiçbir noktada dış servislere (TMDb, OMDb vb.) doğrudan istek atmaz. Tüm çağrılar ve önbellekleme (caching) mekanizmaları kendi yapılandırdığımız arka plan (Backend) üzerinden işler.
+* **Canlı KNN önerileri:** Her film, onu puanlayan kullanıcıların puanlarından oluşan bir vektördür (item-based collaborative filtering). Puanlardan kullanıcının ortalaması çıkarılır; böylece Öklid mesafesi cömert ya da cimri puanlama eğilimini değil, tercih biçimini ölçer. Eğitilmiş model her öneri isteğinde canlı çalışır.
+* **Kriterli öneri:** Tür, puan aralığı, yıl, minimum oy sayısı ve etikete göre filtreleme; beğenilen bir filme göre benzer yapımlar.
+* **Veri seti analizi:** Tür, puan, yıl ve popülerlik dağılımları ile modelin doğruluk metrikleri ayrı bir sayfada.
+* **Zengin film detayı:** Oyuncu kadrosu, yönetmen, IMDb puanı ve fragman TMDb ve OMDb'den alınır; sonuçlar 30 gün önbellekte tutulur.
+* **Tek komutla otomasyon:** `python main.py` gerekirse veriyi temizler, modeli eğitir, veritabanına yayınlar ve API'yi başlatır.
+* **Güvenli anahtar yönetimi:** API anahtarları yalnızca server'dadır. Tarayıcı yalnızca kendi API'mize ve TMDb'nin görsel sunucusuna bağlanır.
 
 ## Sistem Mimarisi
 
-Proje, sorumlulukları kesin olarak ayrılmış iki bağımsız katmandan (Server ve Client) oluşur. Aralarındaki tek haberleşme köprüsü yerel ağ üzerinden sağlanan JSON API'dir. Veritabanı kullanılmamakta olup veriler CSV'ler ve belleğe yüklenen Pickle dosyaları ile yönetilir.
+```mermaid
+flowchart LR
+    subgraph egitim["Eğitim (yerelde, bir kez)"]
+        direction TB
+        data[("MovieLens 32M")] --> prep["Veri hazırlama"]
+        prep --> train["Model eğitimi"]
+    end
 
-```text
-[ MovieLens CSV ] 
-      │ 
-      ▼
-( server/app/data/clean.py )  ──►  ( server/app/model/train.py )  ──►  [ knn_model.pkl ]
-                                                                               │
-                                                                               ▼
-[ Tarayıcı / İstemci ]  ◄── ( FastAPI :8000 ) ◄── ( recommender.py ) ◄─────────┘
+    subgraph kullanim["Kullanım (her istekte)"]
+        direction TB
+        ui["Web arayüzü"] <--> api["API"]
+        api --> knn["Model"]
+        api --> db[("Veritabanı")]
+        api --> info["Film bilgisi servisleri"]
+    end
+
+    user(("Kullanıcı")) <--> ui
+    train -- "model" --> knn
+    train -- "katalog" --> db
+
+    classDef model fill:#E50914,stroke:#B00710,color:#ffffff
+    class train,knn model
 ```
+
+* **Eğitim yerelde yapılır.** Ham veri temizlenir, KNN modeli eğitilir ve örneklem üzerinde değerlendirilir. Model dosyası GitHub Releases'e, katalog ve analiz verisi Neon'a yazılır.
+* **Canlı server** model dosyasını olduğu gibi yükler ve her öneri isteğinde `kneighbors` çalıştırır. Ham veri canlı ortamda bulunmaz.
+* **Veritabanı** yalnızca fonksiyon ve prosedürlerle kullanılır; şema `database/` altındaki sürümlü script'lerdedir.
+
+| Tablo | İçerik |
+|---|---|
+| `movies` | Film kataloğu: başlık, tür, yıl, etiketler, ortalama puan, oy sayısı, poster |
+| `app_meta` | Veri Seti sayfasının grafikleri, istatistikler ve model metrikleri |
+| `external_cache` | TMDb ve OMDb'den alınan film detayları (30 günde bir yenilenir) |
+
+## Model
+
+| | |
+|---|---|
+| Algoritma | KNN (`NearestNeighbors`, brute force), Öklid mesafesi, K = 10 |
+| Özellik vektörü | Film × kullanıcı matrisi, kullanıcı ortalaması çıkarılmış puanlar |
+| RMSE / MAE | 0,657 / 0,423 |
+| Precision (4+ puan) | 0,936 |
+
+Metrikler, rastgele seçilen 1.500 kullanıcının birer puanı modelden saklanıp tahmin edilerek hesaplanır.
+
+## Veri Seti
+
+GroupLens Research (University of Minnesota) tarafından yayımlanan [MovieLens 32M](https://grouplens.org/datasets/movielens/32m/), 9 Ocak 1995 – 12 Ekim 2023 arasında verilmiş puanları içerir. Az oy alan filmler (75'ten az) ve az puan veren kullanıcılar (30'dan az) elendikten sonra 40.000 kullanıcılık bir örneklem kullanılır:
+
+| | Ham veri seti | Modelde kullanılan |
+|---|---:|---:|
+| Puan | 32.000.204 | 7.371.109 |
+| Kullanıcı | 200.948 | 40.000 |
+| Film | 87.585 | 12.296 |
 
 ## Proje Yapısı
 
 ```text
 movimind/
-├── client/               # React, TypeScript, SCSS ve Vite tabanlı önyüz katmanı
-│   ├── src/features/     # Sayfa bazlı ayrılmış modüller (home, recommend, dataset vb.)
-│   ├── src/services/     # Sadece backend'e giden isteklerin yönetildiği proxy (api.ts)
-│   └── src/styles/       # Uygulama genelinde kullanılan kesin tema değişkenleri
-├── server/               # Python ve FastAPI tabanlı arka plan katmanı
-│   ├── app/api/          # Modüler endpoint'ler
-│   ├── app/model/        # Öneri algoritması, modelleme, eğitim mantığı
-│   ├── data/raw/         # MovieLens (ml-32m) ham CSV verileri
-│   └── artifacts/        # Üretilen Pickle (KNN) modeli, cache dosyaları ve metrikler
-└── CITATION.cff          # Proje ve veri seti atıf bilgisi
+├── client/                 # React, TypeScript, Sass ve Vite ile arayüz
+│   ├── src/features/       # Sayfalar: home, recommend, dataset, movie, category
+│   ├── src/components/     # Paylaşılan bileşenler
+│   ├── src/services/       # API istemcisi (tek bağlantı noktası)
+│   └── Dockerfile          # Yerel çalıştırma için arayüz imajı
+├── server/                 # Python ve FastAPI ile API
+│   ├── app/api/            # Endpoint'ler
+│   ├── app/data/           # Veri temizleme ve analiz
+│   ├── app/model/          # Eğitim, değerlendirme, yayın ve öneri motoru
+│   ├── app/db/             # Veritabanı erişim katmanı
+│   └── Dockerfile          # API imajı (yerel ve canlı)
+├── database/               # Sürümlü PostgreSQL script'leri (tablo, prosedür, fonksiyon, trigger)
+├── .github/workflows/      # CI ve deploy
+├── docker-compose.yml      # Yerelde iki katmanı birlikte başlatır
+├── CITATION.cff            # Proje ve veri seti atıf bilgisi
+└── LICENSE
 ```
 
 ## Kurulum ve Çalıştırma
 
-Projeyi yerel ortamınızda ayağa kaldırmak için aşağıdaki adımları sırasıyla izleyin. 
+Gereksinimler: Python 3.13, Node.js 22, bir [Neon](https://neon.com) veritabanı. TMDb ve OMDb anahtarları isteğe bağlıdır; boş bırakılırsa oyuncu, IMDb puanı ve fragman gösterilmez.
 
-### 1. Ortam Değişkenleri (.env)
-Örnek dosyaları kopyalayıp kendi değerlerinizi girin. Gerçek `.env` dosyaları `.gitignore` ile dışlanır; depoda yalnızca `.env.example` bulunur.
+### 1. Ortam değişkenleri
+
+Örnek dosyaları kopyalayıp kendi değerlerinizi girin. Gerçek `.env` dosyaları depoya girmez.
 
 ```bash
-cp server/.env.example server/.env   # TMDB_API_KEY, OMDB_API_KEY, CORS_ORIGINS ...
+cp server/.env.example server/.env   # DATABASE_URL, TMDB_API_KEY, OMDB_API_KEY ...
 cp client/.env.example client/.env   # VITE_API_BASE
 ```
 
-### Veri Seti
-[MovieLens ml-32m](https://grouplens.org/datasets/movielens/32m/) arşivini indirip içeriğini `server/data/raw/ml-32m/` dizinine çıkarın. Ham veri lisans gereği ve boyutu nedeniyle depoya dahil edilmez.
+### 2. Veri seti
 
-### 2. Backend Geliştirme Sunucusu
-Python ortamınızda, `server` dizini içerisindeki gereksinimleri yükleyin ve ana dosya olan `main.py` dosyasını çalıştırın:
+[MovieLens 32M](https://grouplens.org/datasets/movielens/32m/) arşivini indirip içeriğini `server/data/raw/ml-32m/` klasörüne çıkarın. Ham veri lisans koşulları ve boyutu nedeniyle depoda bulunmaz.
+
+### 3. API
 
 ```bash
 cd server
 pip install -r requirements.txt
 python main.py
 ```
-*Not: Sunucu ilk kez ayağa kaldırıldığında ham veri ve model bulamazsa temizleme ve eğitim scriptlerini otomatik tetikler.*
 
-### 3. Frontend Geliştirme Sunucusu
-Backend aktifken yeni bir terminal sekmesi açın, paketleri yükleyip arayüzü başlatın:
+İlk açılışta veri temizleme, model eğitimi ve veritabanına yayın otomatik çalışır. Sonraki açılışlarda yalnızca model değiştiyse yeniden yayın yapılır. API belgeleri: [http://localhost:8000/docs](http://localhost:8000/docs).
+
+### 4. Arayüz
 
 ```bash
 cd client
@@ -83,13 +143,28 @@ npm install
 npm run dev
 ```
 
-İstemci başlatıldıktan sonra modern VOD arayüzüne [http://localhost:5173](http://localhost:5173) adresinden ulaşabilirsiniz.
+Arayüz [http://localhost:5173](http://localhost:5173) adresinde açılır.
 
-## Veri Seti ve Atıf
+### Docker ile
 
-Bu projede GroupLens Research (University of Minnesota) tarafından yayımlanan **MovieLens 32M** veri seti kullanılmıştır. Veri seti 200.948 kullanıcının 87.585 filme 9 Ocak 1995 – 12 Ekim 2023 arasında verdiği 32.000.204 puan ile 2.000.072 etiketi içerir.
+Python veya Node kurmadan iki katmanı birlikte başlatmak için (`server/.env` gerekli):
 
-GroupLens'in talep ettiği atıf:
+```bash
+docker compose up --build
+```
+
+Arayüz [http://localhost:5173](http://localhost:5173), API [http://localhost:8000/docs](http://localhost:8000/docs) adresinde açılır. Veri seti ve model klasörleri bilgisayardan bağlanır.
+
+## Canlı Ortam
+
+| Katman | Platform | Dağıtım |
+|---|---|---|
+| Arayüz | Cloudflare Pages | GitHub Actions build çıktısını yükler |
+| API | Render (Docker) | GitHub Actions imajı GitHub Container Registry'ye gönderir, Render bu imajı çalıştırır |
+| Veritabanı | Neon (PostgreSQL) | Katalog ve analiz verisi; şema `database/` script'leriyle |
+| Model | GitHub Releases | `knn_model.pkl`, `model-*` etiketli sürümlerde; imaj en son sürümü kullanır |
+
+## Atıf
 
 > F. Maxwell Harper and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM Transactions on Interactive Intelligent Systems (TiiS) 5, 4: 19:1–19:19. <https://doi.org/10.1145/2827872>
 
@@ -107,9 +182,13 @@ GroupLens'in talep ettiği atıf:
 }
 ```
 
-**Kullanım koşulları:** Veri seti yalnızca araştırma/eğitim amaçlı, ticari olmayan biçimde kullanılmaktadır. MOVIMIND, University of Minnesota veya GroupLens Research tarafından onaylanmış ya da desteklenmiş değildir. Ayrıntılar için veri setiyle gelen `README.txt` dosyasındaki *Usage License* bölümüne bakın.
+**Kullanım koşulları:** Veri seti ticari olmayan amaçla kullanılmaktadır. MOVIMIND, University of Minnesota veya GroupLens Research tarafından onaylanmış ya da desteklenmiş değildir. Ayrıntılar veri setiyle gelen `README.txt` dosyasının *Usage License* bölümündedir.
 
 ## Üçüncü Taraf Veri Kaynakları
 
-- Film detayları, posterler ve fragman bağlantıları [TMDB](https://www.themoviedb.org/) API'si üzerinden alınır. *This product uses the TMDB API but is not endorsed or certified by TMDB.*
-- IMDb puanı, ödüller ve ek meta veriler [OMDb API](https://www.omdbapi.com/) üzerinden alınır.
+- Film detayları, posterler ve fragmanlar [TMDB](https://www.themoviedb.org/) API'sinden alınır. *This product uses the TMDB API but is not endorsed or certified by TMDB.*
+- IMDb puanı, ödüller ve ek bilgiler [OMDb API](https://www.omdbapi.com/)'den alınır.
+
+## Lisans
+
+Kaynak kod [MIT](LICENSE) lisanslıdır. MovieLens verisi ile TMDb ve OMDb'den alınan veriler kendi lisans koşullarına tabidir.
