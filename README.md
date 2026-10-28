@@ -22,20 +22,31 @@ MOVIMIND, MovieLens 32M veri seti üzerinde eğitilen bir KNN modeliyle kullanı
 
 ## Ekran Görüntüleri
 
+
 **Bugün ne izlemek istersin?**
+
 ![Bugün ne izlemek istersin](.github/screenshots/01-tonight.jpg)
 
+
 **Ana sayfa**
+
 ![Ana sayfa](.github/screenshots/02-home.jpg)
 
+
 **Kişiselleştirilmiş öneriler**
+
 ![Öneriler](.github/screenshots/03-recommend.jpg)
 
+
 **Film detayı**
+
 ![Film detayı](.github/screenshots/04-movie.jpg)
 
+
 **Veri seti analizi**
+
 ![Veri seti analizi](.github/screenshots/05-dataset.jpg)
+
 
 ## Öne Çıkan Özellikler
 
