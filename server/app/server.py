@@ -12,7 +12,6 @@ BOOT_ID = str(uuid.uuid4())
 
 from app.api import (
     routes_analysis,
-    routes_external,
     routes_movies,
     routes_recommend,
     routes_stats,
@@ -33,7 +32,6 @@ def create_app() -> FastAPI:
     app.include_router(routes_movies.router)
     app.include_router(routes_recommend.router)
     app.include_router(routes_analysis.router)
-    app.include_router(routes_external.router)
 
     _include_local_routers(app)
 

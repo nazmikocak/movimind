@@ -1,12 +1,7 @@
-"""Model doğruluğu değerlendirmesi (örneklemli, hızlı).
+"""KNN modelinin doğruluğunu kullanıcı örneklemi üzerinde ölçer (RMSE, MAE, precision).
 
-Item-based KNN ile tutulan (holdout) puanları tahmin eder ve RMSE / MAE /
-isabet (precision) hesaplar. Tüm veri yerine sabit-tohumlu bir kullanıcı
-örneklemi üzerinde çalışır; böylece eğitim süresi makul kalır.
-
-Tahmin: kullanıcı u'nun film m'ye vereceği puan, m'nin en yakın komşu
-filmleri içinde u'nun puanladıklarının (mesafeye göre) ağırlıklı
-ortalamasıdır (merkezlenmiş uzayda hesaplanıp kullanıcı ortalaması eklenir).
+Her test kullanıcısından bir puan saklanır (holdout) ve filmin en yakın komşuları
+arasında kullanıcının puanladıklarının mesafe ağırlıklı ortalamasıyla tahmin edilir.
 """
 from __future__ import annotations
 
@@ -22,7 +17,6 @@ def evaluate(model, matrix, movie_to_idx, ratings: pd.DataFrame) -> dict:
     rng = np.random.default_rng(config.RANDOM_SEED)
     user_mean = ratings.groupby("userId")["rating"].mean()
 
-    # Test için yeterince filmi olan kullanıcılar
     counts = ratings["userId"].value_counts()
     eligible = counts[counts >= 5].index.to_numpy()
     if len(eligible) == 0:
@@ -32,7 +26,6 @@ def evaluate(model, matrix, movie_to_idx, ratings: pd.DataFrame) -> dict:
     n = min(config.EVAL_SAMPLE_USERS, len(eligible))
     test_users = rng.choice(eligible, size=n, replace=False)
 
-    # Test kullanıcılarının puanlarını hızlı erişim için grupla
     sub = ratings[ratings["userId"].isin(test_users)]
     by_user = {uid: g for uid, g in sub.groupby("userId")}
 
@@ -44,14 +37,13 @@ def evaluate(model, matrix, movie_to_idx, ratings: pd.DataFrame) -> dict:
         g = by_user.get(uid)
         if g is None or len(g) < 2:
             continue
-        # Bir puanı tut (holdout) — rastgele
+        # Holdout: rastgele bir puan tahmin için saklanır
         held = g.sample(1, random_state=config.RANDOM_SEED)
         held_movie = int(held["movieId"].iloc[0])
         held_rating = float(held["rating"].iloc[0])
         if held_movie not in movie_to_idx:
             continue
 
-        # Kullanıcının diğer puanları (movieId → rating)
         seen = {int(r.movieId): float(r.rating)
                 for r in g.itertuples() if int(r.movieId) != held_movie}
         if not seen:

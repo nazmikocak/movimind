@@ -1,66 +1,91 @@
-"""Öneri motoru — eğitilmiş KNN modelini ve işlenmiş veriyi yükler.
+"""Öneri motoru: model dosyasını yükler ve KNN'i (Öklid) her istekte çalıştırır.
 
-Tüm öneri/arama/istatistik fonksiyonları buradan servis edilir.
-Algoritma: item-based KNN, **Öklid mesafesi** (cosine DEĞİL).
+Film kataloğu, puan özetleri ve analiz verisi açılışta Neon'dan belleğe alınır.
 """
 from __future__ import annotations
 
-import json
-import pickle
+from functools import lru_cache
 
+import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
+from sklearn.neighbors import NearestNeighbors
 
 from app.config import config
-from app.data import analysis as analysis_mod
+from app.db import repository as repo
+from app.db.enums import MetaKey
+from app.model import model_store
+from app.services import external
 
-# ── Modül durumu (ilk import'ta yüklenir) ────────────────────
-_model = None
-_matrix = None
-_movie_ids = None
-_movie_to_idx = None
-_k = config.KNN_K
+_model: NearestNeighbors | None = None
+_matrix: csr_matrix | None = None
+_movie_ids: np.ndarray | None = None
+_movie_to_idx: dict[int, int] = {}
 
 movies: pd.DataFrame | None = None
-ratings: pd.DataFrame | None = None
 avg_ratings: pd.Series | None = None
 rating_counts: pd.Series | None = None
 movie_imdb: dict = {}
 movie_tmdb: dict = {}
-_analysis: dict = {}
-_metrics: dict = {}
+movie_poster: dict = {}
+_meta: dict[MetaKey, object] = {}
 
 
 def load() -> None:
-    """Model ve veriyi belleğe al. main.py bootstrap'tan sonra çağrılır."""
-    global _model, _matrix, _movie_ids, _movie_to_idx, _k
-    global movies, ratings, avg_ratings, rating_counts, movie_imdb, movie_tmdb
-    global _analysis, _metrics
+    """Modeli, katalogu ve meta veriyi belleğe alır (açılışta bir kez)."""
+    global _model, _matrix, _movie_ids, _movie_to_idx
+    global movies, avg_ratings, rating_counts, movie_imdb, movie_tmdb, movie_poster, _meta
 
-    with open(config.MODEL_PATH, "rb") as f:
-        payload = pickle.load(f)
-    _model = payload["model"]
-    _matrix = payload["matrix"]
-    _movie_ids = payload["movie_ids"]
-    _movie_to_idx = payload["movie_to_idx"]
-    _k = payload.get("k", config.KNN_K)
+    rows = repo.get_movies()
+    meta = repo.get_meta()
+    if rows is None or meta is None:
+        raise RuntimeError(
+            "Veritabanında katalog yok. Yerelde `python main.py` ile yayınlayın "
+            "(canlı için `python main.py --publish-production`)."
+        )
 
-    movies = pd.read_csv(config.PROC_DIR / "movies_clean.csv")
-    ratings = pd.read_csv(config.PROC_DIR / "ratings_clean.csv")
-    avg_ratings = ratings.groupby("movieId", sort=False)["rating"].mean().round(2)
-    rating_counts = ratings.groupby("movieId", sort=False)["rating"].count()
+    payload = model_store.load()
+    _model, _matrix = payload["model"], payload["matrix"]
+    _movie_ids, _movie_to_idx = payload["movie_ids"], payload["movie_to_idx"]
+    if meta.get(MetaKey.MODEL_VERSION) != model_store.version():
+        print("[uyarı] Model dosyası veritabanındaki katalogdan farklı bir eğitime ait; "
+              "yeniden yayınlayın.")
 
-    links = pd.read_csv(config.PROC_DIR / "movie_links.csv")
-    movie_imdb = links.set_index("movieId")["imdbId"].to_dict()
-    movie_tmdb = links.set_index("movieId")["tmdbId"].to_dict()
+    df = pd.DataFrame(rows)
+    df["year"] = df["year"].astype(float)
 
-    _analysis = analysis_mod.build_analysis(movies, ratings)
+    # Eşit puanlı filmler eğitimdeki sırayla kalsın (stats_order)
+    by_stats = df.sort_values("stats_order")
+    avg_ratings = by_stats.set_index("movieId")["avg_rating"]
+    rating_counts = by_stats.set_index("movieId")["rating_count"]
 
-    if config.METRICS_PATH.exists():
-        with open(config.METRICS_PATH, encoding="utf-8") as f:
-            _metrics = json.load(f)
+    movie_imdb = dict(zip(df["movieId"], df["imdbId"]))
+    movie_tmdb = dict(zip(df["movieId"], df["tmdbId"]))
+    movie_poster = {
+        mid: external.poster_url(path) for mid, path in zip(df["movieId"], df["poster_path"])
+    }
+    movies = df[["movieId", "title_clean", "genres", "tags", "year"]]
+    _meta = meta
+    _neighbors.cache_clear()
 
 
-# ── Yardımcılar ──────────────────────────────────────────────
+@lru_cache(maxsize=256)
+def _neighbors(movie_id: int) -> tuple[tuple[int, ...], tuple[float, ...]] | None:
+    """En yakın komşular ve Öklid mesafeleri; ilk eleman filmin kendisidir.
+
+    Sorgu vektörü yoğun (dense) verilir: sonuç aynı, hesap yaklaşık 5 kat hızlı.
+    """
+    idx = _movie_to_idx.get(movie_id)
+    if idx is None:
+        return None
+    n = min(config.KNN_MAX_NEIGHBORS + 1, _matrix.shape[0])
+    distances, indices = _model.kneighbors(_matrix[idx].toarray(), n_neighbors=n)
+    return (
+        tuple(int(_movie_ids[i]) for i in indices[0]),
+        tuple(float(d) for d in distances[0]),
+    )
+
+
 def _movie_row(mid: int, reason: str | None = None) -> dict | None:
     row = movies[movies["movieId"] == mid]
     if row.empty:
@@ -76,6 +101,7 @@ def _movie_row(mid: int, reason: str | None = None) -> dict | None:
         "rating_count": int(rating_counts.get(mid, 0)),
         "imdbId": str(movie_imdb.get(mid, "")),
         "tmdbId": int(movie_tmdb.get(mid, 0)),
+        "poster_url": movie_poster.get(mid),
     }
     if reason:
         data["reason"] = reason
@@ -91,15 +117,13 @@ def _decorate(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-# ── Benzer filmler (KNN — Öklid) ─────────────────────────────
 def get_similar_movies(movie_id: int, n: int = 10) -> list[dict]:
-    if movie_id not in _movie_to_idx:
+    nb = _neighbors(movie_id)
+    if nb is None:
         return []
-    idx = _movie_to_idx[movie_id]
-    distances, indices = _model.kneighbors(_matrix[idx], n_neighbors=n + 1)
+    ids, dists = nb
     results = []
-    for dist, i in zip(distances.flatten()[1:], indices.flatten()[1:]):
-        mid = int(_movie_ids[i])
+    for dist, mid in zip(dists[1:n + 1], ids[1:n + 1]):
         data = _movie_row(mid, f"Benzer izleyici profili (Öklid: {dist:.2f})")
         if data:
             data["distance"] = round(float(dist), 4)
@@ -107,7 +131,6 @@ def get_similar_movies(movie_id: int, n: int = 10) -> list[dict]:
     return results
 
 
-# ── Kriterli öneri ───────────────────────────────────────────
 def get_recommendations(
     genre: str | None = None,
     min_rating: float | None = None,
@@ -123,16 +146,16 @@ def get_recommendations(
     df = _decorate(movies)
     knn_reason = None
 
-    # KNN tohum filmi: önce komşu havuzuna indir
-    if movie_id is not None and movie_id in _movie_to_idx:
-        idx = _movie_to_idx[movie_id]
-        k_search = min(n * 8, len(_movie_ids))
-        distances, indices = _model.kneighbors(_matrix[idx], n_neighbors=k_search + 1)
-        neighbor_ids = [int(_movie_ids[i]) for i in indices.flatten()[1:]]
+    # Referans film verildiyse adaylar onun KNN komşularıyla sınırlanır
+    nb = _neighbors(movie_id) if movie_id is not None else None
+    if nb is not None:
+        ids, dists = nb
+        k_search = min(n * 8, len(ids) - 1)
+        neighbor_ids = list(ids[1:k_search + 1])
         df = df[df["movieId"].isin(neighbor_ids) & (df["movieId"] != movie_id)]
         knn_reason = {
-            int(_movie_ids[i]): round(float(d), 4)
-            for d, i in zip(distances.flatten()[1:], indices.flatten()[1:])
+            mid: round(float(d), 4)
+            for d, mid in zip(dists[1:k_search + 1], ids[1:k_search + 1])
         }
 
     if genre:
@@ -152,7 +175,6 @@ def get_recommendations(
     if min_votes:
         df = df[df["rating_count"] >= min_votes]
 
-    # Sıralama stratejisi
     if knn_reason is not None:
         df = df.assign(_d=df["movieId"].map(knn_reason).fillna(9e9)).sort_values("_d")
     elif sort == "popularity":
@@ -187,12 +209,12 @@ def get_recommendations(
             "rating_count": int(r["rating_count"]),
             "imdbId": str(r["imdbId"]),
             "tmdbId": int(r["tmdbId"]),
+            "poster_url": movie_poster.get(mid),
             "reason": reason,
         })
     return results
 
 
-# ── Listeler ─────────────────────────────────────────────────
 def get_top_rated(n: int = 10, min_votes: int = 1000) -> list[dict]:
     eligible = rating_counts[rating_counts >= min_votes].index
     top_ids = avg_ratings.loc[avg_ratings.index.isin(eligible)].nlargest(n).index
@@ -219,52 +241,24 @@ def search_movies(q: str, n: int = 10) -> list[dict]:
             "rating_count": int(r["rating_count"]),
             "imdbId": str(r["imdbId"]),
             "tmdbId": int(r["tmdbId"]),
+            "poster_url": movie_poster.get(int(r["movieId"])),
         }
         for _, r in df.iterrows()
     ]
 
 
 def get_movie_base(movie_id: int) -> dict | None:
-    """Detay sayfası için veri setindeki temel film bilgisi."""
+    """Detay sayfası için veri setindeki film bilgisi."""
     return _movie_row(int(movie_id))
 
 
-# ── İstatistik / analiz / model bilgisi ──────────────────────
 def get_dataset_stats() -> dict:
-    used_ratings = int(len(ratings))
-    used_movies = int(movies["movieId"].nunique())
-    used_users = int(ratings["userId"].nunique())
-    return {
-        "total_users": used_users,
-        "total_movies": used_movies,
-        "total_ratings": used_ratings,
-        "avg_rating": round(float(ratings["rating"].mean()), 2),
-        "algorithm": f"KNN (K={_k}, Öklid Mesafesi)",
-        "dataset": "MovieLens ml-32m",
-        "sample_info": {
-            "original_ratings": config.ORIGINAL_RATINGS,
-            "original_movies": config.ORIGINAL_MOVIES,
-            "original_users": config.ORIGINAL_USERS,
-            "used_ratings": used_ratings,
-            "used_movies": used_movies,
-            "used_users": used_users,
-            "ratings_pct": round(used_ratings / config.ORIGINAL_RATINGS * 100, 2),
-            "movies_pct": round(used_movies / config.ORIGINAL_MOVIES * 100, 2),
-            "users_pct": round(used_users / config.ORIGINAL_USERS * 100, 2),
-            "film_threshold": config.FILM_MIN_RATINGS,
-            "user_threshold": config.USER_MIN_RATINGS,
-        },
-    }
+    return _meta.get(MetaKey.DATASET_STATS, {})
 
 
 def get_analysis() -> dict:
-    return _analysis
+    return _meta.get(MetaKey.ANALYSIS, {})
 
 
 def get_model_info() -> dict:
-    return _metrics or {
-        "algorithm": "KNN — Öklid Mesafesi",
-        "k": _k,
-        "n_movies": int(len(_movie_ids)) if _movie_ids is not None else 0,
-        "n_users": int(_matrix.shape[1]) if _matrix is not None else 0,
-    }
+    return _meta.get(MetaKey.MODEL_INFO, {})

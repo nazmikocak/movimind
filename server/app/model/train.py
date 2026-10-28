@@ -1,9 +1,8 @@
-"""KNN (Öklid) model eğitimi — item-based collaborative filtering.
+"""KNN (Öklid) modelini eğitir: item-based collaborative filtering.
 
-Doğruluk optimizasyonu: ham puanlar yerine **kullanıcı-ortalaması
-merkezlenmiş** puanlarla film vektörleri kurulur. Böylece Öklid mesafesi
-kullanıcının "cömert/cimri" puanlama eğilimini değil, tercih *şeklini*
-yakalar ve öneri kalitesi artar.
+Film vektörleri ham puanlarla değil, kullanıcı ortalaması çıkarılmış puanlarla
+kurulur. Böylece Öklid mesafesi kullanıcının cömert ya da cimri puanlama eğilimini
+değil, tercih biçimini ölçer.
 """
 import json
 import os
@@ -27,13 +26,11 @@ def run() -> dict:
     movies = pd.read_csv(proc / "movies_clean.csv")
     print(f"[eğitim] Rating sayısı: {len(ratings):,}")
 
-    # ── İndeks eşlemeleri (sıfırdan başlayan tam sayılar) ────
     movie_ids = ratings["movieId"].unique()
     user_ids = ratings["userId"].unique()
     movie_to_idx = {mid: i for i, mid in enumerate(movie_ids)}
     user_to_idx = {uid: i for i, uid in enumerate(user_ids)}
 
-    # ── Kullanıcı-ortalaması merkezleme ──────────────────────
     user_mean = ratings.groupby("userId")["rating"].transform("mean")
     centered = ratings["rating"].to_numpy() - user_mean.to_numpy()
 
@@ -54,7 +51,6 @@ def run() -> dict:
     model.fit(matrix)
     print("[eğitim] Model eğitimi tamamlandı")
 
-    # ── Doğruluk değerlendirmesi (örneklemli) ────────────────
     print("[eğitim] Doğruluk değerlendiriliyor...")
     metrics = ev.evaluate(model, matrix, movie_to_idx, ratings)
     metrics.update({

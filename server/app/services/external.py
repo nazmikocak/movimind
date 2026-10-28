@@ -1,65 +1,77 @@
-"""Harici film API'leri (TMDb + OMDb) — TÜM dış istekler burada yapılır.
+"""TMDb ve OMDb istekleri; API anahtarları yalnızca server'da kalır.
 
-Frontend hiçbir dış servise bağlanmaz; yalnızca kendi server'ımıza gelir,
-server da TMDb/OMDb ve poster servisini proxy'ler. Sonuçlar diske
-cache'lenerek tekrarlı çağrılar ve anahtar kotası korunur.
+Film detayları bellekte ve Neon'daki `external_cache` tablosunda tutulur. Kayıt
+`EXTERNAL_CACHE_TTL_DAYS`'ten eskiyse ziyaret anında yenilenir; servisler o an
+cevap vermezse eski kayıt gösterilir.
 """
 from __future__ import annotations
 
-import json
 import threading
+import time
+from datetime import datetime, timedelta, timezone
 
 import httpx
 
 from app.config import config
+from app.db import repository as repo
 
 TMDB_BASE = "https://api.themoviedb.org/3"
 TMDB_IMG = "https://image.tmdb.org/t/p"
 OMDB_BASE = "https://www.omdbapi.com/"
-METAHUB = "https://images.metahub.space/poster/medium"
+
+# Yenileme başarısız olunca eski kayıt bu süre boyunca tekrar denenmeden gösterilir
+_RETRY_AFTER = timedelta(hours=1)
 
 _cache_lock = threading.Lock()
-_cache: dict | None = None
-
-
-def _load_cache() -> dict:
-    global _cache
-    if _cache is None:
-        if config.CACHE_PATH.exists():
-            try:
-                with open(config.CACHE_PATH, encoding="utf-8") as f:
-                    _cache = json.load(f)
-            except (json.JSONDecodeError, OSError):
-                _cache = {}
-        else:
-            _cache = {}
-    return _cache
-
-
-def _save_cache() -> None:
-    if _cache is None:
-        return
-    config.ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
-    with open(config.CACHE_PATH, "w", encoding="utf-8") as f:
-        json.dump(_cache, f, ensure_ascii=False)
+_cache: dict[str, tuple[dict, datetime]] = {}   # anahtar -> (veri, geçerlilik sonu)
 
 
 def _img(path: str | None, size: str) -> str | None:
     return f"{TMDB_IMG}/{size}{path}" if path else None
 
 
-# ── TMDb ─────────────────────────────────────────────────────
-def _tmdb_get(path: str, **params) -> dict | None:
+def poster_url(poster_path: str | None) -> str | None:
+    """Liste/kart posterleri için TMDb CDN adresi."""
+    return _img(poster_path, config.TMDB_POSTER_SIZE)
+
+
+def _tmdb_get(path: str, client: httpx.Client | None = None, **params) -> dict | None:
     if not config.has_tmdb:
         return None
     params["api_key"] = config.TMDB_API_KEY
     try:
-        with httpx.Client(timeout=8.0) as c:
-            r = c.get(f"{TMDB_BASE}{path}", params=params)
-            if r.status_code == 200:
-                return r.json()
+        c = client or httpx.Client(timeout=8.0)
+        try:
+            for _ in range(3):
+                r = c.get(f"{TMDB_BASE}{path}", params=params)
+                if r.status_code == 429:  # hız sınırı: kısa bekleyip tekrar dene
+                    time.sleep(float(r.headers.get("retry-after", 1)))
+                    continue
+                return r.json() if r.status_code == 200 else None
+        finally:
+            if client is None:
+                c.close()
     except httpx.HTTPError:
         return None
+    return None
+
+
+def resolve_poster_path(tmdb_id: int, imdb_id: str, client: httpx.Client | None = None) -> str | None:
+    """Poster yolunu önce kayıtlı TMDb ID ile, bulunamazsa IMDb ID ile arar.
+
+    MovieLens'teki bazı TMDb ID'leri eskimiş (ör. dizi olarak taşınmış yapımlar);
+    IMDb araması bunları film veya dizi sonucu olarak yakalar.
+    """
+    if tmdb_id:
+        data = _tmdb_get(f"/movie/{tmdb_id}", client)
+        if data and data.get("poster_path"):
+            return data["poster_path"]
+    if imdb_id and imdb_id != "tt0000000":
+        data = _tmdb_get(f"/find/{imdb_id}", client, external_source="imdb_id") or {}
+        for kind in ("movie_results", "tv_results"):
+            for item in data.get(kind) or []:
+                if item.get("poster_path"):
+                    return item["poster_path"]
     return None
 
 
@@ -117,7 +129,6 @@ def _tmdb_details(tmdb_id: int) -> dict:
     }
 
 
-# ── OMDb ─────────────────────────────────────────────────────
 def _omdb_details(imdb_id: str) -> dict:
     if not config.has_omdb or not imdb_id or imdb_id == "tt0000000":
         return {}
@@ -150,37 +161,48 @@ def _omdb_details(imdb_id: str) -> dict:
     }
 
 
-# ── Birleşik detay (cache'li) ────────────────────────────────
-def movie_external_details(tmdb_id: int, imdb_id: str) -> dict:
-    key = f"{tmdb_id}:{imdb_id}"
-    with _cache_lock:
-        cache = _load_cache()
-        if key in cache:
-            return cache[key]
-
+def _fetch_details(tmdb_id: int, imdb_id: str) -> dict:
     resolved = _resolve_tmdb_id(int(tmdb_id or 0), imdb_id)
     result = {"available": config.has_tmdb or config.has_omdb}
     if resolved:
         result.update(_tmdb_details(resolved))
     result.update(_omdb_details(imdb_id))
-
-    with _cache_lock:
-        cache = _load_cache()
-        cache[key] = result
-        _save_cache()
     return result
 
 
-# ── Poster proxy (görüntü baytları server üzerinden) ─────────
-def poster_bytes(imdb_id: str) -> tuple[bytes, str] | None:
-    if not imdb_id or imdb_id == "tt0000000":
-        return None
-    url = f"{METAHUB}/{imdb_id}/img"
-    try:
-        with httpx.Client(timeout=8.0, follow_redirects=True) as c:
-            r = c.get(url, headers={"User-Agent": "Mozilla/5.0"})
-            if r.status_code == 200 and r.content:
-                return r.content, r.headers.get("content-type", "image/jpeg")
-    except httpx.HTTPError:
-        return None
-    return None
+def _remember(key: str, data: dict, valid_until: datetime) -> dict:
+    with _cache_lock:
+        _cache[key] = (data, valid_until)
+    return data
+
+
+def movie_external_details(tmdb_id: int, imdb_id: str) -> dict:
+    key = f"{tmdb_id}:{imdb_id}"
+    ttl = timedelta(days=config.EXTERNAL_CACHE_TTL_DAYS)
+    now = datetime.now(timezone.utc)
+
+    # Önce bellek, sonra Neon; süresi dolmamış kayıt doğrudan döner
+    with _cache_lock:
+        memo = _cache.get(key)
+    if memo and memo[1] > now:
+        return memo[0]
+    stale = memo[0] if memo else None
+    if memo is None:
+        stored = repo.get_external_cache(key)
+        if stored is not None:
+            data, updated_at = stored
+            if updated_at + ttl > now:
+                return _remember(key, data, updated_at + ttl)
+            stale = data
+
+    # Kayıt yoksa veya eskidiyse servislerden çekilir, aynı satırın üzerine yazılır
+    result = _fetch_details(tmdb_id, imdb_id)
+    if len(result) > 1:  # en az bir servisten veri geldi
+        updated_at = repo.upsert_external_cache(key, result)
+        return _remember(key, result, updated_at + ttl)
+
+    # Servisler cevap vermedi veya anahtar yok: eski kayıt varsa o gösterilir
+    if stale is not None:
+        return _remember(key, stale, now + _RETRY_AFTER)
+    return result
+

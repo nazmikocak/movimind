@@ -1,14 +1,12 @@
 """MOVIMIND backend giriş noktası.
 
-Çalıştır:  python main.py
-
-Açılışta gerekirse veriyi temizler, modeli eğitir, ardından API'yi başlatır.
-Sanal ortam gerekmez; sistemdeki Python kullanılır.
+    python main.py                       # gerekirse temizle, eğit, yayınla; sonra servis et
+    python main.py --publish-production  # yerel katalogu canlı veritabanına yaz
 """
 import sys
 from pathlib import Path
 
-# 'app' paketini import edilebilir kıl
+# `app` paketi, çalışma dizininden bağımsız import edilebilsin
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import uvicorn
@@ -17,7 +15,10 @@ from app import bootstrap
 from app.config import config
 from app.server import create_app
 
-# Veri + model hazır olsun (recommender belleğe yüklenir)
+if "--publish-production" in sys.argv:
+    bootstrap.publish_production()
+    sys.exit(0)
+
 bootstrap.prepare()
 
 app = create_app()

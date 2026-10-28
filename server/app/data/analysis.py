@@ -1,14 +1,12 @@
-"""Betimsel istatistik ve grafik verisi üretimi (saf fonksiyonlar).
-
-Veri Seti Analizi sayfasındaki grafikleri besler. Yüklenmiş
-DataFrame'ler üzerinde çalışır; CSV okuma yapmaz (recommender çağırır).
-"""
+"""Veri Seti Analizi sayfasının istatistik ve grafik verisini üreten saf fonksiyonlar."""
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
-# Türlerin sabit sırası (görsel tutarlılık)
+from app.config import config
+
+# Grafiklerde türlerin sabit sırası
 GENRE_ORDER = [
     "Drama", "Comedy", "Thriller", "Action", "Romance", "Adventure",
     "Crime", "Sci-Fi", "Horror", "Fantasy", "Children", "Animation",
@@ -85,4 +83,32 @@ def build_analysis(movies: pd.DataFrame, ratings: pd.DataFrame) -> dict:
         "year_distribution": year_distribution(movies, ratings),
         "popularity_distribution": popularity_distribution(ratings),
         "descriptive": descriptive_stats(ratings),
+    }
+
+
+def dataset_stats(movies: pd.DataFrame, ratings: pd.DataFrame, k: int) -> dict:
+    """Kullanılan örneklemin özeti + ham veri setine oranı."""
+    used_ratings = int(len(ratings))
+    used_movies = int(movies["movieId"].nunique())
+    used_users = int(ratings["userId"].nunique())
+    return {
+        "total_users": used_users,
+        "total_movies": used_movies,
+        "total_ratings": used_ratings,
+        "avg_rating": round(float(ratings["rating"].mean()), 2),
+        "algorithm": f"KNN (K={k}, Öklid Mesafesi)",
+        "dataset": "MovieLens 32M",
+        "sample_info": {
+            "original_ratings": config.ORIGINAL_RATINGS,
+            "original_movies": config.ORIGINAL_MOVIES,
+            "original_users": config.ORIGINAL_USERS,
+            "used_ratings": used_ratings,
+            "used_movies": used_movies,
+            "used_users": used_users,
+            "ratings_pct": round(used_ratings / config.ORIGINAL_RATINGS * 100, 2),
+            "movies_pct": round(used_movies / config.ORIGINAL_MOVIES * 100, 2),
+            "users_pct": round(used_users / config.ORIGINAL_USERS * 100, 2),
+            "film_threshold": config.FILM_MIN_RATINGS,
+            "user_threshold": config.USER_MIN_RATINGS,
+        },
     }
