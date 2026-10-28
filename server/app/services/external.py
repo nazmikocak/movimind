@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import httpx
@@ -164,9 +165,13 @@ def _omdb_details(imdb_id: str) -> dict:
 def _fetch_details(tmdb_id: int, imdb_id: str) -> dict:
     resolved = _resolve_tmdb_id(int(tmdb_id or 0), imdb_id)
     result = {"available": config.has_tmdb or config.has_omdb}
-    if resolved:
-        result.update(_tmdb_details(resolved))
-    result.update(_omdb_details(imdb_id))
+    # TMDb ve OMDb birbirinden bağımsız; aynı anda istenir
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        tmdb = pool.submit(_tmdb_details, resolved) if resolved else None
+        omdb = pool.submit(_omdb_details, imdb_id)
+        if tmdb:
+            result.update(tmdb.result())
+        result.update(omdb.result())
     return result
 
 

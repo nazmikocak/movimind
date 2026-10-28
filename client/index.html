@@ -9,12 +9,19 @@
     <link rel="icon" type="image/svg+xml" href="/src/assets/favicon.svg" />
     <link rel="canonical" href="%VITE_SITE_URL%/" />
 
+    <!-- Bağlantıları erken aç: API, poster sunucusu ve fontlar -->
+    <link rel="preconnect" href="%VITE_API_BASE%" crossorigin />
+    <link rel="preconnect" href="https://image.tmdb.org" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap" />
+
     <!-- Sosyal paylaşım önizlemesi (Open Graph, X/Twitter) -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="tr_TR" />
     <meta property="og:site_name" content="MOVIMIND" />
     <meta property="og:title" content="MOVIMIND | Sana Özel Film Önerileri" />
-    <meta property="og:description" content="Makine öğrenmesiyle (KNN) zevkine en yakın filmleri keşfet." />
+    <meta property="og:description" content="Zevkine en yakın filmleri keşfet, izlemek istediğin bir sonraki yapımı saniyeler içinde bul." />
     <meta property="og:url" content="%VITE_SITE_URL%/" />
     <meta property="og:image" content="%VITE_SITE_URL%/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -22,7 +29,7 @@
     <meta property="og:image:alt" content="MOVIMIND: sana özel film önerileri" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="MOVIMIND | Sana Özel Film Önerileri" />
-    <meta name="twitter:description" content="Makine öğrenmesiyle (KNN) zevkine en yakın filmleri keşfet." />
+    <meta name="twitter:description" content="Zevkine en yakın filmleri keşfet, izlemek istediğin bir sonraki yapımı saniyeler içinde bul." />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.png" />
   </head>
   <body>

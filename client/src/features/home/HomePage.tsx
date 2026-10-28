@@ -95,7 +95,8 @@ export default function HomePage() {
         <div className="home__hero-glow" />
         <div className="home__hero-collage" aria-hidden="true">
           {heroTiles.map((movie, i) => {
-            const poster = getPosterUrl(movie);
+            // Kolaj kutucukları küçük; yarı boyutlu poster yeterli
+            const poster = getPosterUrl(movie)?.replace("/w342/", "/w185/");
             const tileStyle = poster ? { backgroundImage: `url(${poster})` } : undefined;
             return (
               <div
