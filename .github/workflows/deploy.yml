@@ -1,0 +1,133 @@
+# CI + canlıya alma
+#  - Her push/PR: client lint + build, server bağımlılık + import kontrolü
+#  - main'e push: client -> Cloudflare Pages
+#                 server -> Docker imajı (model: son "model-*" GitHub Release'i)
+#                           -> GitHub Container Registry -> Render
+#
+# Gerekli GitHub ayarları (Settings -> Secrets and variables -> Actions):
+#  secrets:   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, RENDER_API_KEY, RENDER_SERVICE_ID
+#  variables: VITE_API_BASE  (ör. https://movimind-api.onrender.com)
+#             VITE_SITE_URL  (ör. https://movimind.pages.dev)
+#             DEPLOY_ENABLED=true  (platformlar kurulana kadar yalnızca CI çalışır)
+name: CI / Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist
+
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: server/requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Uygulama import kontrolü
+        env:
+          RUN_PIPELINE: "false"
+        run: python -c "from app.server import create_app; create_app()"
+
+  deploy-client:
+    needs: [client, server]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: dist
+      - name: Client -> Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=movimind --branch=main
+
+  deploy-server:
+    needs: [client, server]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Model dosyasını son "model-*" Release'inden indir
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=$(gh release list --exclude-drafts --limit 100 --json tagName \
+                --jq '[.[] | select(.tagName | startswith("model-"))][0].tagName')
+          if [ -z "$TAG" ]; then
+            echo "::error::'model-' ile başlayan bir GitHub Release bulunamadı"; exit 1
+          fi
+          gh release download "$TAG" --pattern knn_model.pkl --dir server/artifacts
+          echo "Model: $TAG ($(du -h server/artifacts/knn_model.pkl | cut -f1))"
+
+      - name: İmaj adı (GHCR küçük harf ister)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/movimind-api" >> "$GITHUB_ENV"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: server/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          # İmajı GitHub'da bu depoyla ilişkilendirir (Packages bölümünde görünür)
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      # Render servisi henüz kurulmadıysa (ilk çalıştırma) bu adım atlanır
+      - name: Server -> Render (bu commit'in imajıyla)
+        if: env.RENDER_SERVICE_ID != ''
+        run: |
+          curl -fsS -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"imageUrl\": \"${IMAGE}:${{ github.sha }}\"}"
