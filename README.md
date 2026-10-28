@@ -13,12 +13,29 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
-![Cloudflare Pages](https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflarepages&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)
 
 ## Özet
 
 MOVIMIND, MovieLens 32M veri seti üzerinde eğitilen bir KNN modeliyle kullanıcının zevkine yakın filmleri öneren bir web uygulamasıdır. Makine öğrenmesi hattı (veri temizleme, eğitim, değerlendirme) ile modern bir web arayüzünü bir araya getirir. MOVIMIND film yayını yapmaz; öneri, film bilgisi ve resmi fragman sunar.
+
+## Ekran Görüntüleri
+
+**Bugün ne izlemek istersin?**
+![Bugün ne izlemek istersin](.github/screenshots/01-tonight.jpg)
+
+**Ana sayfa**
+![Ana sayfa](.github/screenshots/02-home.jpg)
+
+**Kişiselleştirilmiş öneriler**
+![Öneriler](.github/screenshots/03-recommend.jpg)
+
+**Film detayı**
+![Film detayı](.github/screenshots/04-movie.jpg)
+
+**Veri seti analizi**
+![Veri seti analizi](.github/screenshots/05-dataset.jpg)
 
 ## Öne Çıkan Özellikler
 
@@ -32,27 +49,36 @@ MOVIMIND, MovieLens 32M veri seti üzerinde eğitilen bir KNN modeliyle kullanı
 ## Sistem Mimarisi
 
 ```mermaid
-flowchart LR
-    subgraph egitim["Eğitim (yerelde, bir kez)"]
-        direction TB
-        data[("MovieLens 32M")] --> prep["Veri hazırlama"]
-        prep --> train["Model eğitimi"]
+flowchart TB
+    user(["Kullanıcı"])
+
+    subgraph web["Arayüz"]
+        direction LR
+        react["Web uygulaması<br/>React"]
     end
 
-    subgraph kullanim["Kullanım (her istekte)"]
-        direction TB
-        ui["Web arayüzü"] <--> api["API"]
-        api --> knn["Model"]
-        api --> db[("Veritabanı")]
-        api --> info["Film bilgisi servisleri"]
+    subgraph api["API"]
+        direction LR
+        service["Öneri servisi<br/>FastAPI"] --- knn["KNN modeli<br/>benzer filmler"]
     end
 
-    user(("Kullanıcı")) <--> ui
-    train -- "model" --> knn
-    train -- "katalog" --> db
+    subgraph data["Veri"]
+        direction LR
+        db[("Veritabanı<br/>PostgreSQL")] ~~~ ext["Film bilgisi<br/>TMDb / OMDb"]
+    end
 
-    classDef model fill:#E50914,stroke:#B00710,color:#ffffff
-    class train,knn model
+    subgraph train["Eğitim (yerelde)"]
+        direction LR
+        ml[("MovieLens 32M")] --> prep["Veri hazırlama"] --> fit["Model eğitimi"]
+    end
+
+    user -- "HTTPS" --> web
+    web -- "JSON API" --> api
+    api -- "okuma ve önbellek" --> data
+    train -. "model ve katalog" .-> api
+
+    classDef red fill:#E50914,stroke:#B00710,color:#ffffff
+    class knn,fit red
 ```
 
 * **Eğitim yerelde yapılır.** Ham veri temizlenir, KNN modeli eğitilir ve örneklem üzerinde değerlendirilir. Model dosyası GitHub Releases'e, katalog ve analiz verisi Neon'a yazılır.
@@ -85,6 +111,12 @@ GroupLens Research (University of Minnesota) tarafından yayımlanan [MovieLens 
 | Puan | 32.000.204 | 7.371.109 |
 | Kullanıcı | 200.948 | 40.000 |
 | Film | 87.585 | 12.296 |
+
+### Atıf
+
+> F. Maxwell Harper and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM Transactions on Interactive Intelligent Systems (TiiS) 5, 4: 19:1–19:19. <https://doi.org/10.1145/2827872>
+
+**Kullanım koşulları:** Veri seti ticari olmayan amaçla kullanılmaktadır. MOVIMIND, University of Minnesota veya GroupLens Research tarafından onaylanmış ya da desteklenmiş değildir. Ayrıntılar veri setiyle gelen `README.txt` dosyasının *Usage License* bölümündedir.
 
 ## Proje Yapısı
 
@@ -159,30 +191,10 @@ Arayüz [http://localhost:5173](http://localhost:5173), API [http://localhost:80
 
 | Katman | Platform | Dağıtım |
 |---|---|---|
-| Arayüz | Cloudflare Pages | GitHub Actions build çıktısını yükler |
+| Arayüz | Vercel | GitHub Actions build çıktısını yükler |
 | API | Render (Docker) | GitHub Actions imajı GitHub Container Registry'ye gönderir, Render bu imajı çalıştırır |
 | Veritabanı | Neon (PostgreSQL) | Katalog ve analiz verisi; şema `database/` script'leriyle |
 | Model | GitHub Releases | `knn_model.pkl`, `model-*` etiketli sürümlerde; imaj en son sürümü kullanır |
-
-## Atıf
-
-> F. Maxwell Harper and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM Transactions on Interactive Intelligent Systems (TiiS) 5, 4: 19:1–19:19. <https://doi.org/10.1145/2827872>
-
-```bibtex
-@article{harper2015movielens,
-  author    = {Harper, F. Maxwell and Konstan, Joseph A.},
-  title     = {The MovieLens Datasets: History and Context},
-  journal   = {ACM Transactions on Interactive Intelligent Systems},
-  volume    = {5},
-  number    = {4},
-  pages     = {19:1--19:19},
-  year      = {2015},
-  publisher = {ACM},
-  doi       = {10.1145/2827872}
-}
-```
-
-**Kullanım koşulları:** Veri seti ticari olmayan amaçla kullanılmaktadır. MOVIMIND, University of Minnesota veya GroupLens Research tarafından onaylanmış ya da desteklenmiş değildir. Ayrıntılar veri setiyle gelen `README.txt` dosyasının *Usage License* bölümündedir.
 
 ## Üçüncü Taraf Veri Kaynakları
 

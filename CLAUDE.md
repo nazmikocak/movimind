@@ -41,7 +41,7 @@ görsel CDN'i (`image.tmdb.org`, adresleri server üretir) ve YouTube fragman em
 | `client/src/services/api.ts` | Server'a giden TEK köprü |
 | `client/src/styles/_variables.scss` | Tema token'ları (renk/font/spacing) |
 | `server/Dockerfile`, `client/Dockerfile`, `docker-compose.yml` | Docker: backend imajı (canlı + yerel), arayüz imajı (yalnızca yerel) |
-| `.github/workflows/deploy.yml` | CI + deploy: Pages (client), GHCR imajı -> Render (server) |
+| `.github/workflows/deploy.yml` | CI + deploy: Vercel (client), GHCR imajı -> Render (server) |
 | `client/src/extensions/` | Yerel eklenti noktaları; `local/` ve `server/app/api/local/` gitignored, depoya/canlıya gitmez |
 
 ## Çalıştırma
