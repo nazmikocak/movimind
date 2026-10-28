@@ -25,27 +25,27 @@ MOVIMIND, MovieLens 32M veri seti üzerinde eğitilen bir KNN modeliyle kullanı
 
 **Bugün ne izlemek istersin?**
 
-![Bugün ne izlemek istersin](.github/screenshots/01-tonight.jpg)
+![Bugün ne izlemek istersin](.github/screenshots/01-tonight.webp)
 
 
 **Ana sayfa**
 
-![Ana sayfa](.github/screenshots/02-home.jpg)
+![Ana sayfa](.github/screenshots/02-home.webp)
 
 
 **Kişiselleştirilmiş öneriler**
 
-![Öneriler](.github/screenshots/03-recommend.jpg)
+![Öneriler](.github/screenshots/03-recommend.webp)
 
 
 **Film detayı**
 
-![Film detayı](.github/screenshots/04-movie.jpg)
+![Film detayı](.github/screenshots/04-movie.webp)
 
 
 **Veri seti analizi**
 
-![Veri seti analizi](.github/screenshots/05-dataset.jpg)
+![Veri seti analizi](.github/screenshots/05-dataset.webp)
 
 
 ## Öne Çıkan Özellikler
@@ -92,15 +92,10 @@ flowchart TB
     class knn,fit red
 ```
 
-* **Eğitim yerelde yapılır.** Ham veri temizlenir, KNN modeli eğitilir ve örneklem üzerinde değerlendirilir. Model dosyası GitHub Releases'e, katalog ve analiz verisi Neon'a yazılır.
+* **Eğitim yerelde yapılır.** Ham veri temizlenir, KNN modeli eğitilir ve örneklem üzerinde değerlendirilir. Model dosyası GitHub Releases'e, katalog ve analiz verisi PostgreSQL veritabanına yazılır.
 * **Canlı server** model dosyasını olduğu gibi yükler ve her öneri isteğinde `kneighbors` çalıştırır. Ham veri canlı ortamda bulunmaz.
 * **Veritabanı** yalnızca fonksiyon ve prosedürlerle kullanılır; şema `database/` altındaki sürümlü script'lerdedir.
 
-| Tablo | İçerik |
-|---|---|
-| `movies` | Film kataloğu: başlık, tür, yıl, etiketler, ortalama puan, oy sayısı, poster |
-| `app_meta` | Veri Seti sayfasının grafikleri, istatistikler ve model metrikleri |
-| `external_cache` | TMDb ve OMDb'den alınan film detayları (30 günde bir yenilenir) |
 
 ## Model
 
@@ -115,13 +110,8 @@ Metrikler, rastgele seçilen 1.500 kullanıcının birer puanı modelden saklan�
 
 ## Veri Seti
 
-GroupLens Research (University of Minnesota) tarafından yayımlanan [MovieLens 32M](https://grouplens.org/datasets/movielens/32m/), 9 Ocak 1995 – 12 Ekim 2023 arasında verilmiş puanları içerir. Az oy alan filmler (75'ten az) ve az puan veren kullanıcılar (30'dan az) elendikten sonra 40.000 kullanıcılık bir örneklem kullanılır:
+GroupLens Research (University of Minnesota) tarafından yayımlanan [MovieLens 32M](https://grouplens.org/datasets/movielens/32m/), 9 Ocak 1995 – 12 Ekim 2023 arasında verilmiş puanları içerir. Az oy alan filmler (75'ten az) ve az puan veren kullanıcılar (30'dan az) elendikten sonra 40.000 kullanıcılık bir örneklem kullanılır.
 
-| | Ham veri seti | Modelde kullanılan |
-|---|---:|---:|
-| Puan | 32.000.204 | 7.371.109 |
-| Kullanıcı | 200.948 | 40.000 |
-| Film | 87.585 | 12.296 |
 
 ### Atıf
 
@@ -153,7 +143,7 @@ movimind/
 
 ## Kurulum ve Çalıştırma
 
-Gereksinimler: Python 3.13, Node.js 22, bir [Neon](https://neon.com) veritabanı. TMDb ve OMDb anahtarları isteğe bağlıdır; boş bırakılırsa oyuncu, IMDb puanı ve fragman gösterilmez.
+Gereksinimler: Python 3.13, Node.js 22, bir PostgreSQL veritabanı (projede [Neon](https://neon.com) kullanılıyor). TMDb ve OMDb anahtarları isteğe bağlıdır; boş bırakılırsa oyuncu, IMDb puanı ve fragman gösterilmez.
 
 ### 1. Ortam değişkenleri
 
