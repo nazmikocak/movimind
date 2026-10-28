@@ -1,0 +1,19 @@
+# Backend imajının build bağlamı (depo kökü). Gizli ve büyük dosyalar imaja girmez.
+**/.env
+**/.env.*
+!**/.env.example
+**/__pycache__
+**/*.py[cod]
+.git
+.github
+.claude
+docs
+client
+
+# Veri seti imaja girmez (yerelde volume ile bağlanır)
+server/data
+server/bootstrap.log
+
+# artifacts içinden yalnızca model dosyası
+server/artifacts/*
+!server/artifacts/knn_model.pkl
