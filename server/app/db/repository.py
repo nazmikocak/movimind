@@ -28,7 +28,7 @@ def _get_pool() -> ConnectionPool:
             raise RuntimeError("DATABASE_URL tanımlı değil (server/.env)")
         _pool = ConnectionPool(
             config.DATABASE_URL,
-            min_size=1,
+            min_size=0,  # boştaki bağlantılar da kapansın; açık bağlantı Neon'un uyumasını engeller
             max_size=config.DB_POOL_MAX,
             max_idle=240,  # Neon 5 dk boşta kalınca uyur; bağlantıyı ondan önce bırak
             check=ConnectionPool.check_connection,
