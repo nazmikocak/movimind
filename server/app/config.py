@@ -66,6 +66,11 @@ class Config:
 
     HOST = os.getenv("HOST", "127.0.0.1")
     PORT = _int("PORT", 8000)
+    # Render ücretsiz servisi 15 dk boşta kalınca uyur; açıksa server kendi adresine istek atar.
+    # Render genel adresi RENDER_EXTERNAL_URL ile kendiliğinden verir.
+    KEEPALIVE_ENABLED = _bool("KEEPALIVE_ENABLED", False)
+    KEEPALIVE_URL = os.getenv("KEEPALIVE_URL", os.getenv("RENDER_EXTERNAL_URL", "")).strip()
+    KEEPALIVE_INTERVAL_MINUTES = _int("KEEPALIVE_INTERVAL_MINUTES", 10)
     # Virgülle ayrılmış izinli origin listesi (canlıda arayüzün adresi)
     CORS_ORIGINS = [
         o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")

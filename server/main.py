@@ -14,6 +14,7 @@ import uvicorn
 from app import bootstrap
 from app.config import config
 from app.server import create_app
+from app.services import keepalive
 
 if "--publish-production" in sys.argv:
     bootstrap.publish_production()
@@ -22,6 +23,7 @@ if "--publish-production" in sys.argv:
 bootstrap.prepare()
 
 app = create_app()
+keepalive.start()
 
 
 if __name__ == "__main__":
